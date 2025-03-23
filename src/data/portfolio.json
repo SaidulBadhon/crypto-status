@@ -1,0 +1,812 @@
+[
+    {
+        "total": "1,665.24 USDT",
+        "crypto": [
+            {
+                "name": "BTC",
+                "amount": "0.01138634",
+                "amountInUsdt": "955.12",
+                "parPrice": "88,004.38 USDT"
+            },
+            {
+                "name": "NEAR",
+                "amount": "151.8508509",
+                "amountInUsdt": "389.80",
+                "parPrice": "3.70 USDT"
+            },
+            {
+                "name": "USDC",
+                "amount": "264.37164911",
+                "amountInUsdt": "264.45",
+                "parPrice": "1.00 USDT"
+            },
+            {
+                "name": "GLM",
+                "amount": "181.89183202",
+                "amountInUsdt": "55.53",
+                "parPrice": "0.3802 USDT"
+            },
+            {
+                "name": "HMSTR",
+                "amount": "6.11",
+                "amountInUsdt": "0.01317927",
+                "parPrice": "0.00216 USDT"
+            },
+            {
+                "name": "CGPT",
+                "amount": "0.0500386",
+                "amountInUsdt": "0.00478869",
+                "parPrice": "0.0957 USDT"
+            },
+            {
+                "name": "GPS",
+                "amount": "0.0174078",
+                "amountInUsdt": "0.00060274",
+                "parPrice": "0.0346 USDT"
+            },
+            {
+                "name": "SHELL",
+                "amount": "0.00146155",
+                "amountInUsdt": "0.00037605",
+                "parPrice": "0.2574 USDT"
+            },
+            {
+                "name": "DOGS",
+                "amount": "0.02",
+                "amountInUsdt": "0.0000256",
+                "parPrice": "0.00128 USDT"
+            }
+        ],
+        "createdAt": "2025-03-13 02:34:46"
+    },
+    {
+        "total": "1,667.33 USDT",
+        "crypto": [
+            {
+                "name": "BTC",
+                "amount": "0.01138634",
+                "amountInUsdt": "956.56",
+                "parPrice": "88,004.38 USDT"
+            },
+            {
+                "name": "NEAR",
+                "amount": "151.85086888",
+                "amountInUsdt": "390.86",
+                "parPrice": "3.70 USDT"
+            },
+            {
+                "name": "USDC",
+                "amount": "264.37187667",
+                "amountInUsdt": "264.45",
+                "parPrice": "1.00 USDT"
+            },
+            {
+                "name": "GLM",
+                "amount": "181.89680452",
+                "amountInUsdt": "55.44",
+                "parPrice": "0.3802 USDT"
+            },
+            {
+                "name": "HMSTR",
+                "amount": "6.11",
+                "amountInUsdt": "0.01322204",
+                "parPrice": "0.00216 USDT"
+            },
+            {
+                "name": "CGPT",
+                "amount": "0.0500386",
+                "amountInUsdt": "0.0048037",
+                "parPrice": "0.0957 USDT"
+            },
+            {
+                "name": "GPS",
+                "amount": "0.0174078",
+                "amountInUsdt": "0.00060448",
+                "parPrice": "0.0346 USDT"
+            },
+            {
+                "name": "SHELL",
+                "amount": "0.00146155",
+                "amountInUsdt": "0.00038263",
+                "parPrice": "0.2574 USDT"
+            },
+            {
+                "name": "DOGS",
+                "amount": "0.02",
+                "amountInUsdt": "0.0000257",
+                "parPrice": "0.00128 USDT"
+            }
+        ],
+        "createdAt": "2025-03-13 02:46:30"
+    },
+    {
+        "total": "1,670.17 USDT",
+        "crypto": [
+            {
+                "name": "BTC",
+                "amount": "0.0113864",
+                "amountInUsdt": "957.44",
+                "parPrice": "84,099.86 USDT"
+            },
+            {
+                "name": "NEAR",
+                "amount": "151.85088241",
+                "amountInUsdt": "392.68",
+                "parPrice": "2.584 USDT"
+            },
+            {
+                "name": "USDC",
+                "amount": "264.37204814",
+                "amountInUsdt": "264.39",
+                "parPrice": "1.00 USDT"
+            },
+            {
+                "name": "GLM",
+                "amount": "181.90052554",
+                "amountInUsdt": "55.44",
+                "parPrice": "0.3046 USDT"
+            },
+            {
+                "name": "HMSTR",
+                "amount": "6.11",
+                "amountInUsdt": "0.01327703",
+                "parPrice": "0.00216 USDT"
+            },
+            {
+                "name": "CGPT",
+                "amount": "0.0500386",
+                "amountInUsdt": "0.00479369",
+                "parPrice": "0.0957 USDT"
+            },
+            {
+                "name": "GPS",
+                "amount": "0.0174079",
+                "amountInUsdt": "0.00060274",
+                "parPrice": "0.0345 USDT"
+            },
+            {
+                "name": "SHELL",
+                "amount": "0.00146155",
+                "amountInUsdt": "0.00038073",
+                "parPrice": "0.2607 USDT"
+            },
+            {
+                "name": "DOGS",
+                "amount": "0.02",
+                "amountInUsdt": "0.0000258",
+                "parPrice": "0.0001291 USDT"
+            }
+        ],
+        "createdAt": "2025-03-13 03:21:49"
+    },
+    {
+        "total": "1,660.41 USDT",
+        "crypto": [
+            {
+                "name": "BTC",
+                "amount": "0.0113864",
+                "amountInUsdt": "951.10",
+                "parPrice": "83,537.31 USDT"
+            },
+            {
+                "name": "NEAR",
+                "amount": "151.85090892",
+                "amountInUsdt": "389.80",
+                "parPrice": "2.569 USDT"
+            },
+            {
+                "name": "USDC",
+                "amount": "264.39547621",
+                "amountInUsdt": "264.42",
+                "parPrice": "1.00 USDT"
+            },
+            {
+                "name": "GLM",
+                "amount": "181.90760831",
+                "amountInUsdt": "55.06",
+                "parPrice": "0.3031 USDT"
+            },
+            {
+                "name": "HMSTR",
+                "amount": "6.11",
+                "amountInUsdt": "0.01324037",
+                "parPrice": "0.00216 USDT"
+            },
+            {
+                "name": "CGPT",
+                "amount": "0.0500386",
+                "amountInUsdt": "0.00478369",
+                "parPrice": "0.0957 USDT"
+            },
+            {
+                "name": "GPS",
+                "amount": "0.0174708",
+                "amountInUsdt": "0.00060099",
+                "parPrice": "0.0343 USDT"
+            },
+            {
+                "name": "SHELL",
+                "amount": "0.00146155",
+                "amountInUsdt": "0.00037985",
+                "parPrice": "0.2600 USDT"
+            },
+            {
+                "name": "DOGS",
+                "amount": "0.02",
+                "amountInUsdt": "0.0000257",
+                "parPrice": "0.0001288 USDT"
+            }
+        ],
+        "createdAt": "2025-03-13 04:25:01"
+    },
+    {
+        "total": "1,660.33 USDT",
+        "crypto": [
+            {
+                "name": "BTC",
+                "amount": "0.0113864",
+                "amountInUsdt": "944.50",
+                "parPrice": "82,508.63 USDT"
+            },
+            {
+                "name": "NEAR",
+                "amount": "151.85113563",
+                "amountInUsdt": "397.24",
+                "parPrice": "2.591 USDT"
+            },
+            {
+                "name": "ETH",
+                "amount": "0.09560997",
+                "amountInUsdt": "181.64",
+                "parPrice": "1,885.57 USDT"
+            },
+            {
+                "name": "USDC",
+                "amount": "84.54282103",
+                "amountInUsdt": "84.55",
+                "parPrice": "1.00 USDT"
+            },
+            {
+                "name": "GLM",
+                "amount": "181.96798422",
+                "amountInUsdt": "53.42",
+                "parPrice": "0.2907 USDT"
+            },
+            {
+                "name": "HMSTR",
+                "amount": "6.11",
+                "amountInUsdt": "0.01358963",
+                "parPrice": "0.00216 USDT"
+            },
+            {
+                "name": "CGPT",
+                "amount": "0.0500386",
+                "amountInUsdt": "0.00476367",
+                "parPrice": "0.0957 USDT"
+            },
+            {
+                "name": "GPS",
+                "amount": "0.0174709",
+                "amountInUsdt": "0.00058352",
+                "parPrice": "0.0330 USDT"
+            },
+            {
+                "name": "SHELL",
+                "amount": "0.00146155",
+                "amountInUsdt": "0.00037941",
+                "parPrice": "0.2577 USDT"
+            },
+            {
+                "name": "DOGS",
+                "amount": "0.02",
+                "amountInUsdt": "0.0000258",
+                "parPrice": "0.0001292 USDT"
+            }
+        ],
+        "createdAt": "2025-03-13 13:44:35"
+    },
+    {
+        "total": "1,673.89 USDT",
+        "crypto": [
+            {
+                "name": "BTC",
+                "amount": "0.01138647",
+                "amountInUsdt": "954.70",
+                "parPrice": "83,825.67 USDT"
+            },
+            {
+                "name": "NEAR",
+                "amount": "151.86074773",
+                "amountInUsdt": "397.57",
+                "parPrice": "2.617 USDT"
+            },
+            {
+                "name": "ETH",
+                "amount": "0.09561387",
+                "amountInUsdt": "183.47",
+                "parPrice": "1,919.05 USDT"
+            },
+            {
+                "name": "USDC",
+                "amount": "84.56912845",
+                "amountInUsdt": "84.55",
+                "parPrice": "1.00 USDT"
+            },
+            {
+                "name": "GLM",
+                "amount": "182.17005622",
+                "amountInUsdt": "53.57",
+                "parPrice": "0.2941 USDT"
+            },
+            {
+                "name": "HMSTR",
+                "amount": "6.11",
+                "amountInUsdt": "0.01258644",
+                "parPrice": "0.00216 USDT"
+            },
+            {
+                "name": "CGPT",
+                "amount": "0.0500386",
+                "amountInUsdt": "0.00488376",
+                "parPrice": "0.0957 USDT"
+            },
+            {
+                "name": "GPS",
+                "amount": "0.01747294",
+                "amountInUsdt": "0.00060631",
+                "parPrice": "0.0347 USDT"
+            },
+            {
+                "name": "SHELL",
+                "amount": "0.00146155",
+                "amountInUsdt": "0.00039292",
+                "parPrice": "0.2732 USDT"
+            },
+            {
+                "name": "DOGS",
+                "amount": "0.02",
+                "amountInUsdt": "0.0000258",
+                "parPrice": "0.0001342 USDT"
+            }
+        ],
+        "createdAt": "2025-03-14 20:24:14"
+    },
+    {
+        "total": "1,680.48 USDT",
+        "crypto": [
+            {
+                "name": "BTC",
+                "amount": "0.01138647",
+                "amountInUsdt": "956.50",
+                "parPrice": "84,209.59 USDT"
+            },
+            {
+                "name": "NEAR",
+                "amount": "151.86075245",
+                "amountInUsdt": "398.33",
+                "parPrice": "2.632 USDT"
+            },
+            {
+                "name": "ETH",
+                "amount": "0.09561391",
+                "amountInUsdt": "184.02",
+                "parPrice": "1,924.49 USDT"
+            },
+            {
+                "name": "USDC",
+                "amount": "84.56915659",
+                "amountInUsdt": "84.56",
+                "parPrice": "1.00 USDT"
+            },
+            {
+                "name": "GLM",
+                "amount": "182.17201852",
+                "amountInUsdt": "54.05",
+                "parPrice": "0.2967 USDT"
+            },
+            {
+                "name": "HMSTR",
+                "amount": "6.11",
+                "amountInUsdt": "0.01358967",
+                "parPrice": "0.00216 USDT"
+            },
+            {
+                "name": "CGPT",
+                "amount": "0.0500386",
+                "amountInUsdt": "0.00488376",
+                "parPrice": "0.0957 USDT"
+            },
+            {
+                "name": "GPS",
+                "amount": "0.01747295",
+                "amountInUsdt": "0.0006098",
+                "parPrice": "0.0349 USDT"
+            },
+            {
+                "name": "SHELL",
+                "amount": "0.00146155",
+                "amountInUsdt": "0.00040002",
+                "parPrice": "0.2736 USDT"
+            },
+            {
+                "name": "DOGS",
+                "amount": "0.02",
+                "amountInUsdt": "0.0000258",
+                "parPrice": "0.0001344 USDT"
+            }
+        ],
+        "createdAt": "2025-03-14 20:41:33"
+    },
+    {
+        "total": "1,720.97 USDT",
+        "crypto": [
+            {
+                "name": "BTC",
+                "amount": "0.01138654",
+                "amountInUsdt": "961.20",
+                "parPrice": "84,415.51 USDT"
+            },
+            {
+                "name": "NEAR",
+                "amount": "151.8696899",
+                "amountInUsdt": "407.16",
+                "parPrice": "2.682 USDT"
+            },
+            {
+                "name": "ETH",
+                "amount": "0.09561576",
+                "amountInUsdt": "185.95",
+                "parPrice": "1,944.81 USDT"
+            },
+            {
+                "name": "USDC",
+                "amount": "112.59517507",
+                "amountInUsdt": "112.59",
+                "parPrice": "1.00 USDT"
+            },
+            {
+                "name": "GLM",
+                "amount": "182.30358638",
+                "amountInUsdt": "53.74",
+                "parPrice": "0.2947 USDT"
+            },
+            {
+                "name": "HMSTR",
+                "amount": "6.11",
+                "amountInUsdt": "0.01309984",
+                "parPrice": "0.00216 USDT"
+            },
+            {
+                "name": "CGPT",
+                "amount": "0.0500386",
+                "amountInUsdt": "0.00494881",
+                "parPrice": "0.0957 USDT"
+            },
+            {
+                "name": "GPS",
+                "amount": "0.01747608",
+                "amountInUsdt": "0.0007305",
+                "parPrice": "0.0418 USDT"
+            },
+            {
+                "name": "SHELL",
+                "amount": "0.00146155",
+                "amountInUsdt": "0.00045001",
+                "parPrice": "0.3078 USDT"
+            },
+            {
+                "name": "DOGS",
+                "amount": "0.02",
+                "amountInUsdt": "0.0000292",
+                "parPrice": "0.0001460 USDT"
+            },
+            {
+                "name": "USDT",
+                "amount": "0.3",
+                "amountInUsdt": "0.3",
+                "parPrice": "1.00 USDT"
+            }
+        ],
+        "createdAt": "2025-03-15 20:53:11"
+    },
+    {
+        "total": "1,759.86 USDT",
+        "crypto": [
+            {
+                "name": "BTC",
+                "amount": "0.01138654",
+                "amountInUsdt": "976.43",
+                "parPrice": "85,770.80 USDT"
+            },
+            {
+                "name": "NEAR",
+                "amount": "151.90502694",
+                "amountInUsdt": "423.20",
+                "parPrice": "2.786 USDT"
+            },
+            {
+                "name": "ETH",
+                "amount": "0.09561576",
+                "amountInUsdt": "195.64",
+                "parPrice": "2,043.43 USDT"
+            },
+            {
+                "name": "USDC",
+                "amount": "109.65915397",
+                "amountInUsdt": "109.63",
+                "parPrice": "0.9998 USDT"
+            },
+            {
+                "name": "USDT",
+                "amount": "31.29370844",
+                "amountInUsdt": "31.29",
+                "parPrice": "1.0000 USDT"
+            },
+            {
+                "name": "GLM",
+                "amount": "82.55565678",
+                "amountInUsdt": "23.64",
+                "parPrice": "0.2866 USDT"
+            },
+            {
+                "name": "ACX",
+                "amount": "0.0711054",
+                "amountInUsdt": "0.0189",
+                "parPrice": "0.2663 USDT"
+            },
+            {
+                "name": "HMSTR",
+                "amount": "6.11",
+                "amountInUsdt": "0.0129597",
+                "parPrice": "0.002136 USDT"
+            },
+            {
+                "name": "CGPT",
+                "amount": "0.0500386",
+                "amountInUsdt": "0.0049834",
+                "parPrice": "0.0997 USDT"
+            },
+            {
+                "name": "GPS",
+                "amount": "0.01747889",
+                "amountInUsdt": "0.00058379",
+                "parPrice": "0.0334 USDT"
+            },
+            {
+                "name": "SHELL",
+                "amount": "0.00146155",
+                "amountInUsdt": "0.00045604",
+                "parPrice": "0.3040 USDT"
+            },
+            {
+                "name": "DOGS",
+                "amount": "0.02",
+                "amountInUsdt": "0.0000288",
+                "parPrice": "0.0001443 USDT"
+            }
+        ],
+        "createdAt": "2025-03-19 20:30:51"
+    },
+    {
+        "total": "1,780.11 USDT",
+        "crypto": [
+            {
+                "name": "BTC",
+                "amount": "0.01138654",
+                "amountInUsdt": "988.03",
+                "parPrice": "86,773.37 USDT"
+            },
+            {
+                "name": "NEAR",
+                "amount": "151.90502708",
+                "amountInUsdt": "422.44",
+                "parPrice": "2.781 USDT"
+            },
+            {
+                "name": "ETH",
+                "amount": "0.09561576",
+                "amountInUsdt": "195.79",
+                "parPrice": "2,048.07 USDT"
+            },
+            {
+                "name": "USDC",
+                "amount": "109.6590596",
+                "amountInUsdt": "109.42",
+                "parPrice": "0.9997 USDT"
+            },
+            {
+                "name": "USDT",
+                "amount": "55.0549256",
+                "amountInUsdt": "55.05",
+                "parPrice": "1.0000 USDT"
+            },
+            {
+                "name": "ACX",
+                "amount": "0.07110574",
+                "amountInUsdt": "0.01897101",
+                "parPrice": "0.2685 USDT"
+            },
+            {
+                "name": "GLM",
+                "amount": "0.05847921",
+                "amountInUsdt": "0.01670751",
+                "parPrice": "0.2870 USDT"
+            },
+            {
+                "name": "HMSTR",
+                "amount": "6.11",
+                "amountInUsdt": "0.0136864",
+                "parPrice": "0.002240 USDT"
+            },
+            {
+                "name": "CGPT",
+                "amount": "0.0500386",
+                "amountInUsdt": "0.00501887",
+                "parPrice": "0.1008 USDT"
+            },
+            {
+                "name": "GPS",
+                "amount": "0.01747897",
+                "amountInUsdt": "0.00085554",
+                "parPrice": "0.0337 USDT"
+            },
+            {
+                "name": "SHELL",
+                "amount": "0.00146155",
+                "amountInUsdt": "0.00043992",
+                "parPrice": "0.3006 USDT"
+            },
+            {
+                "name": "DOGS",
+                "amount": "0.02",
+                "amountInUsdt": "0.0000289",
+                "parPrice": "0.0001448 USDT"
+            }
+        ],
+        "createdAt": "2025-03-20 00:32:04"
+    },
+    {
+        "total": "1,731.09 USDT",
+        "crypto": [
+            {
+                "name": "BTC",
+                "amount": "0.01144002",
+                "amountInUsdt": "960.10",
+                "parPrice": "83,915.40 USDT"
+            },
+            {
+                "name": "NEAR",
+                "amount": "152.36129545",
+                "amountInUsdt": "416.70",
+                "parPrice": "2.737 USDT"
+            },
+            {
+                "name": "ETH",
+                "amount": "0.09609376",
+                "amountInUsdt": "189.49",
+                "parPrice": "1,971.94 USDT"
+            },
+            {
+                "name": "USDC",
+                "amount": "109.72440815",
+                "amountInUsdt": "109.77",
+                "parPrice": "1.0005 USDT"
+            },
+            {
+                "name": "USDT",
+                "amount": "55.05819878",
+                "amountInUsdt": "55.06",
+                "parPrice": "1.0000 USDT"
+            },
+            {
+                "name": "ACX",
+                "amount": "0.07111935",
+                "amountInUsdt": "0.02113417",
+                "parPrice": "0.2997 USDT"
+            },
+            {
+                "name": "GLM",
+                "amount": "0.05850413",
+                "amountInUsdt": "0.0163636",
+                "parPrice": "0.2797 USDT"
+            },
+            {
+                "name": "HMSTR",
+                "amount": "6.11",
+                "amountInUsdt": "0.01264159",
+                "parPrice": "0.002069 USDT"
+            },
+            {
+                "name": "CGPT",
+                "amount": "0.0500386",
+                "amountInUsdt": "0.00484874",
+                "parPrice": "0.0969 USDT"
+            },
+            {
+                "name": "GPS",
+                "amount": "0.01747956",
+                "amountInUsdt": "0.00052438",
+                "parPrice": "0.0300 USDT"
+            },
+            {
+                "name": "SHELL",
+                "amount": "0.00146155",
+                "amountInUsdt": "0.00042034",
+                "parPrice": "0.2876 USDT"
+            },
+            {
+                "name": "DOGS",
+                "amount": "0.02",
+                "amountInUsdt": "0.0000301",
+                "parPrice": "0.0001553 USDT"
+            }
+        ],
+        "createdAt": "2025-03-21 08:49:22"
+    },
+    {
+        "total": "1,748.21 USDT",
+        "crypto": [
+            {
+                "name": "BTC",
+                "amount": "0.01144002",
+                "amountInUsdt": "975.99",
+                "parPrice": "85,300.01 USDT"
+            },
+            {
+                "name": "NEAR",
+                "amount": "152.37896408",
+                "amountInUsdt": "416.60",
+                "parPrice": "2.735 USDT"
+            },
+            {
+                "name": "ETH",
+                "amount": "0.09609376",
+                "amountInUsdt": "190.49",
+                "parPrice": "1,982.35 USDT"
+            },
+            {
+                "name": "USDT",
+                "amount": "164.14881776",
+                "amountInUsdt": "164.15",
+                "parPrice": "1.0000 USDT"
+            },
+            {
+                "name": "USDC",
+                "amount": "0.66712586",
+                "amountInUsdt": "0.6671",
+                "parPrice": "1.0000 USDT"
+            },
+            {
+                "name": "BNB",
+                "amount": "0.00015013",
+                "amountInUsdt": "0.09332013",
+                "parPrice": "621.65 USDT"
+            },
+            {
+                "name": "HMSTR",
+                "amount": "6.11",
+                "amountInUsdt": "0.01241552",
+                "parPrice": "0.002033 USDT"
+            },
+            {
+                "name": "CGPT",
+                "amount": "0.0500386",
+                "amountInUsdt": "0.0050639",
+                "parPrice": "0.1012 USDT"
+            },
+            {
+                "name": "SHELL",
+                "amount": "0.00146155",
+                "amountInUsdt": "0.0003999",
+                "parPrice": "0.2730 USDT"
+            },
+            {
+                "name": "DOGS",
+                "amount": "0.02",
+                "amountInUsdt": "0.0000316",
+                "parPrice": "0.0001580 USDT"
+            }
+        ],
+        "createdAt": "2025-03-23 22:51:21"
+    }
+]
