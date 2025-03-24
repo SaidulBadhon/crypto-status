@@ -2,7 +2,7 @@
 import { useState } from "react";
 import App from "../App";
 
-const PASSWORD = "thegamer456";
+const PASSWORD = import.meta.env.VITE_PASSWORD;
 
 export default function ProtectedApp() {
   const [authenticated, setAuthenticated] = useState(false);
