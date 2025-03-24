@@ -137,7 +137,7 @@ export default function App() {
   };
 
   return (
-    <div className="bg-slate-50 p-8 gap-4 flex flex-col">
+    <div className="bg-slate-50 p-2 sm:p-8 gap-4 flex flex-col">
       <h1 className="text-4xl font-bold text-center">Crypto Portfolio</h1>
       <div className="flex justify-center mb-4">
         <button
@@ -163,7 +163,7 @@ export default function App() {
       {selectedData.length > 0 && (
         <CryptoChart data={selectedData} coin={selectedCoin} />
       )}
-      <div className="grid flex-wrap w-full gap-4 grid-cols-4">
+      <div className="grid flex-wrap w-full gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-4">
         {reversePortfolio?.map((item) => (
           <ItemCard
             key={item.createdAt}
