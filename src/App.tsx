@@ -115,7 +115,7 @@ export default function App() {
     try {
       const updatedData = [...portfolio, newItem];
 
-      const res = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}`, {
+      await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -124,7 +124,7 @@ export default function App() {
         body: JSON.stringify(updatedData),
       });
 
-      const result = await res.json();
+      // const result = await res.json();
       setPortfolio(updatedData);
       setCache(updatedData);
       alert("New portfolio entry added!");
@@ -144,7 +144,7 @@ export default function App() {
           onClick={() => fetchPortfolio(true)}
           className="px-4 py-2 bg-blue-600 text-white rounded"
         >
-          Refresh Data
+          {isLoading ? "Loading..." : "Refresh Data"}
         </button>
       </div>
       <div className="flex flex-wrap gap-4 justify-center">

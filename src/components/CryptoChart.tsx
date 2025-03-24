@@ -1,6 +1,5 @@
 "use client";
 
-import { TrendingUp } from "lucide-react";
 import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts";
 import moment from "moment";
 import {
@@ -10,13 +9,13 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
+} from "./ui/card";
 import {
   ChartConfig,
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
-} from "@/components/ui/chart";
+} from "./ui/chart";
 
 // Utility function for chart Y-axis
 // function getYAxisDomain(data: any) {
@@ -93,7 +92,7 @@ export default function CryptoChart({
               content={
                 <ChartTooltipContent
                   indicator="line"
-                  formatter={(value: number) => value.toFixed(20)}
+                  formatter={(value: any) => Number(value)?.toFixed(20)}
                   // valueFormatter={(value: number) => value.toFixed(8)} // or use dynamic based on coin
                 />
               }
