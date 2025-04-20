@@ -7,24 +7,33 @@ import {
   CardTitle,
 } from "./ui/card";
 import Image from "./image";
+
+interface CryptoItem {
+  name: string;
+  amount: string;
+  amountInUsdt: string;
+  parPrice: string;
+}
+
+interface PortfolioItem {
+  createdAt: string;
+  total: string;
+  crypto: CryptoItem[];
+}
+
+interface ItemCardProps {
+  item: PortfolioItem;
+  onCoinClick?: (coin: string) => void;
+  className?: string;
+}
+
 export default function ItemCard({
   item,
   onCoinClick,
-}: {
-  item: {
-    createdAt: string;
-    total: string;
-    crypto: {
-      name: string;
-      amount: string;
-      amountInUsdt: string;
-      parPrice: string;
-    }[];
-  };
-  onCoinClick?: (coin: string) => void;
-}) {
+  className = "",
+}: ItemCardProps) {
   return (
-    <Card className="w-full">
+    <Card className={`w-full hover:shadow-md transition-shadow ${className}`}>
       {/* <Card className="max-w-96 w-full"> */}
       <CardHeader>
         <CardTitle className="text-3xl">{item.total}</CardTitle>
@@ -37,8 +46,9 @@ export default function ItemCard({
         {item.crypto.map((crypto) => (
           <div
             key={crypto.name}
-            className="border-b flex justify-between pb-2 mb-2 cursor-pointer hover:bg-red-100 transition rounded px-2"
-            onClick={() => onCoinClick?.(crypto.name)}
+            className="border-b flex justify-between pb-2 mb-2 rounded px-2 hover:bg-accent/50 transition-colors"
+            onClick={onCoinClick ? () => onCoinClick(crypto.name) : undefined}
+            style={{ cursor: onCoinClick ? "pointer" : "default" }}
           >
             <div className="flex items-center gap-2">
               <Image
