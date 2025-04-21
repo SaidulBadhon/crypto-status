@@ -28,10 +28,7 @@ export async function GET(request: NextRequest, { params }: { params: any }) {
  * PUT /api/portfolio/[id]
  * Update a portfolio entry
  */
-export async function PUT(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function PUT(request: NextRequest, { params }: { params: any }) {
   try {
     const id = params.id;
     const portfolioItem = (await request.json()) as Partial<PortfolioItem>;
@@ -54,7 +51,7 @@ export async function PUT(
  */
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: any }
 ) {
   try {
     const id = params.id;
