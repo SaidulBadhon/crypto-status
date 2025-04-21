@@ -1,8 +1,14 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { getPortfolioFromJsonBin } from "../api/portfolioApi";
 import { getCachedPortfolio, setCache } from "../lib/cacheHelper";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "../components/ui/card";
+import { getPortfolio } from "../lib/dataSourceHelper";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "../components/ui/card";
 import Image from "../components/image";
 import moment from "moment";
 import { ArrowLeft, Trash2 } from "lucide-react";
@@ -25,11 +31,11 @@ export default function PortfolioDetail() {
     }
 
     try {
-      const data = await getPortfolioFromJsonBin();
+      const data = await getPortfolio();
       setPortfolio(data);
       setCache(data);
     } catch (err) {
-      console.error("Failed to fetch from JSONBin:", err);
+      console.error("Failed to fetch portfolio data:", err);
     }
 
     setIsLoading(false);
@@ -76,7 +82,8 @@ export default function PortfolioDetail() {
 
   // Calculate total value in USDT
   const totalUSDT = portfolioItem.crypto.reduce(
-    (sum: number, coin: any) => sum + parseFloat(coin.amountInUsdt.replace(/,/g, "")),
+    (sum: number, coin: any) =>
+      sum + parseFloat(coin.amountInUsdt.replace(/,/g, "")),
     0
   );
 
@@ -94,7 +101,9 @@ export default function PortfolioDetail() {
       <div className="flex flex-col gap-2">
         <h1 className="text-3xl font-bold">Portfolio Details</h1>
         <p className="text-muted-foreground">
-          {moment.utc(portfolioItem.createdAt).format("MMMM D, YYYY [at] h:mm A")}
+          {moment
+            .utc(portfolioItem.createdAt)
+            .format("MMMM D, YYYY [at] h:mm A")}
         </p>
       </div>
 
@@ -102,9 +111,7 @@ export default function PortfolioDetail() {
       <Card>
         <CardHeader>
           <CardTitle>Portfolio Summary</CardTitle>
-          <CardDescription>
-            Total value and asset distribution
-          </CardDescription>
+          <CardDescription>Total value and asset distribution</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -117,7 +124,9 @@ export default function PortfolioDetail() {
             </div>
             <div>
               <h3 className="text-lg font-medium mb-2">Asset Count</h3>
-              <p className="text-3xl font-bold">{portfolioItem.crypto.length}</p>
+              <p className="text-3xl font-bold">
+                {portfolioItem.crypto.length}
+              </p>
               <p className="text-sm text-muted-foreground mt-1">
                 Different cryptocurrencies
               </p>
@@ -138,7 +147,9 @@ export default function PortfolioDetail() {
           <div className="space-y-4">
             {portfolioItem.crypto.map((crypto: any) => {
               // Calculate percentage of total portfolio
-              const usdtValue = parseFloat(crypto.amountInUsdt.replace(/,/g, ""));
+              const usdtValue = parseFloat(
+                crypto.amountInUsdt.replace(/,/g, "")
+              );
               const percentage = (usdtValue / totalUSDT) * 100;
 
               return (

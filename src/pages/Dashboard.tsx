@@ -1,12 +1,22 @@
 import { useEffect, useState } from "react";
 import CryptoChart from "../components/CryptoChart";
-import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "../components/ui/card";
 import { Link } from "react-router-dom";
-import { ArrowUpRight, TrendingUp, TrendingDown, DollarSign } from "lucide-react";
+import {
+  ArrowUpRight,
+  TrendingUp,
+  TrendingDown,
+  DollarSign,
+} from "lucide-react";
 
 // API and cache functions
-import { getPortfolioFromJsonBin } from "../api/portfolioApi";
 import { getCachedPortfolio, setCache } from "../lib/cacheHelper";
+import { getPortfolio } from "../lib/dataSourceHelper";
 
 const COIN_OPTIONS = ["Total", "BTC", "ETH", "NEAR", "USDC", "USDT"];
 
@@ -23,7 +33,8 @@ export default function Dashboard() {
   });
 
   // Get the latest portfolio entry
-  const latestEntry = portfolio.length > 0 ? portfolio[portfolio.length - 1] : null;
+  const latestEntry =
+    portfolio.length > 0 ? portfolio[portfolio.length - 1] : null;
 
   const handleSetSelectedData = (coinName: string) => {
     const data = portfolio.map((item) => {
@@ -51,7 +62,7 @@ export default function Dashboard() {
       const previousValue = data[data.length - 2].value;
       const change = currentValue - previousValue;
       const changePercentage = (change / previousValue) * 100;
-      
+
       setStats({
         totalValue: currentValue,
         change24h: change,
@@ -74,11 +85,11 @@ export default function Dashboard() {
     }
 
     try {
-      const data = await getPortfolioFromJsonBin();
+      const data = await getPortfolio();
       setPortfolio(data);
       setCache(data);
     } catch (err) {
-      console.error("Failed to fetch from JSONBin:", err);
+      console.error("Failed to fetch portfolio data:", err);
     }
 
     setIsLoading(false);
@@ -114,7 +125,10 @@ export default function Dashboard() {
           <CardContent>
             <div className="flex items-center justify-between">
               <div className="text-2xl font-bold">
-                ${stats.totalValue.toLocaleString(undefined, { maximumFractionDigits: 2 })}
+                $
+                {stats.totalValue.toLocaleString(undefined, {
+                  maximumFractionDigits: 2,
+                })}
               </div>
               <DollarSign className="h-4 w-4 text-muted-foreground" />
             </div>
@@ -129,10 +143,21 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent>
             <div className="flex items-center justify-between">
-              <div className={`text-2xl font-bold ${stats.trend === 'up' ? 'text-green-500' : stats.trend === 'down' ? 'text-red-500' : ''}`}>
-                {stats.change24h >= 0 ? '+' : ''}${stats.change24h.toLocaleString(undefined, { maximumFractionDigits: 2 })}
+              <div
+                className={`text-2xl font-bold ${
+                  stats.trend === "up"
+                    ? "text-green-500"
+                    : stats.trend === "down"
+                    ? "text-red-500"
+                    : ""
+                }`}
+              >
+                {stats.change24h >= 0 ? "+" : ""}$
+                {stats.change24h.toLocaleString(undefined, {
+                  maximumFractionDigits: 2,
+                })}
               </div>
-              {stats.trend === 'up' ? (
+              {stats.trend === "up" ? (
                 <TrendingUp className="h-4 w-4 text-green-500" />
               ) : (
                 <TrendingDown className="h-4 w-4 text-red-500" />
@@ -149,10 +174,19 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent>
             <div className="flex items-center justify-between">
-              <div className={`text-2xl font-bold ${stats.trend === 'up' ? 'text-green-500' : stats.trend === 'down' ? 'text-red-500' : ''}`}>
-                {stats.changePercentage >= 0 ? '+' : ''}{stats.changePercentage.toFixed(2)}%
+              <div
+                className={`text-2xl font-bold ${
+                  stats.trend === "up"
+                    ? "text-green-500"
+                    : stats.trend === "down"
+                    ? "text-red-500"
+                    : ""
+                }`}
+              >
+                {stats.changePercentage >= 0 ? "+" : ""}
+                {stats.changePercentage.toFixed(2)}%
               </div>
-              {stats.trend === 'up' ? (
+              {stats.trend === "up" ? (
                 <TrendingUp className="h-4 w-4 text-green-500" />
               ) : (
                 <TrendingDown className="h-4 w-4 text-red-500" />
@@ -179,8 +213,8 @@ export default function Dashboard() {
           <button
             key={coin}
             className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-              selectedCoin === coin 
-                ? "bg-primary text-primary-foreground" 
+              selectedCoin === coin
+                ? "bg-primary text-primary-foreground"
                 : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
             }`}
             onClick={() => setSelectedCoin(coin)}
@@ -202,9 +236,12 @@ export default function Dashboard() {
             <CardTitle>Portfolio Details</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="mb-4">View your complete portfolio history and detailed breakdown of assets.</p>
-            <Link 
-              to="/portfolio" 
+            <p className="mb-4">
+              View your complete portfolio history and detailed breakdown of
+              assets.
+            </p>
+            <Link
+              to="/portfolio"
               className="inline-flex items-center gap-1 text-primary hover:underline"
             >
               View Portfolio <ArrowUpRight className="h-4 w-4" />
@@ -217,9 +254,12 @@ export default function Dashboard() {
             <CardTitle>Add New Entry</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="mb-4">Record a new portfolio snapshot to track your crypto assets over time.</p>
-            <Link 
-              to="/add" 
+            <p className="mb-4">
+              Record a new portfolio snapshot to track your crypto assets over
+              time.
+            </p>
+            <Link
+              to="/add"
               className="inline-flex items-center gap-1 text-primary hover:underline"
             >
               Add Entry <ArrowUpRight className="h-4 w-4" />

@@ -1,6 +1,11 @@
 // Get the BIN_ID and API_KEY from localStorage or environment variables
-const getBinId = () => localStorage.getItem("binId") || import.meta.env.VITE_BIN_ID;
-const getApiKey = () => localStorage.getItem("apiKey") || import.meta.env.VITE_BIN_API_KEY;
+const getBinId = () =>
+  localStorage.getItem("binId") || import.meta.env.VITE_BIN_ID;
+const getApiKey = () =>
+  localStorage.getItem("apiKey") || import.meta.env.VITE_BIN_API_KEY;
+
+console.log("BIN_ID:", getBinId());
+console.log("API_KEY:", getApiKey());
 
 /**
  * Fetches portfolio data from JSONBin.io

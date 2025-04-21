@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import ItemCard from "../components/ItemCard";
-import { getPortfolioFromJsonBin } from "../api/portfolioApi";
 import { getCachedPortfolio, setCache } from "../lib/cacheHelper";
+import { getPortfolio } from "../lib/dataSourceHelper";
 import { Link } from "react-router-dom";
 
 export default function Portfolio() {
@@ -28,11 +28,11 @@ export default function Portfolio() {
     }
 
     try {
-      const data = await getPortfolioFromJsonBin();
+      const data = await getPortfolio();
       setPortfolio(data);
       setCache(data);
     } catch (err) {
-      console.error("Failed to fetch from JSONBin:", err);
+      console.error("Failed to fetch portfolio data:", err);
     }
 
     setIsLoading(false);
@@ -60,7 +60,9 @@ export default function Portfolio() {
           <select
             id="sort-order"
             value={sortOrder}
-            onChange={(e) => setSortOrder(e.target.value as "newest" | "oldest")}
+            onChange={(e) =>
+              setSortOrder(e.target.value as "newest" | "oldest")
+            }
             className="rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm"
           >
             <option value="newest">Newest First</option>
@@ -89,7 +91,9 @@ export default function Portfolio() {
       {isLoading ? (
         <div className="text-center py-12">
           <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-current border-r-transparent align-[-0.125em] motion-reduce:animate-[spin_1.5s_linear_infinite]"></div>
-          <p className="mt-4 text-muted-foreground">Loading portfolio data...</p>
+          <p className="mt-4 text-muted-foreground">
+            Loading portfolio data...
+          </p>
         </div>
       ) : sortedPortfolio.length === 0 ? (
         <div className="text-center py-12">

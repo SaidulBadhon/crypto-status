@@ -1,8 +1,14 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "../components/ui/card";
-import { savePortfolioToJsonBin } from "../api/portfolioApi";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "../components/ui/card";
 import { setCache, getCachedPortfolio } from "../lib/cacheHelper";
+import { savePortfolio, getDataSource } from "../lib/dataSourceHelper";
 
 export default function AddEntry() {
   const navigate = useNavigate();
@@ -33,29 +39,41 @@ export default function AddEntry() {
         return;
       }
 
-      // Get existing portfolio
-      const existingPortfolio = getCachedPortfolio() || [];
-      
-      // Add new item
-      const updatedPortfolio = [...existingPortfolio, newItem];
-      
-      // Save to JSONBin
-      await savePortfolioToJsonBin(updatedPortfolio);
-      
-      // Update cache
-      setCache(updatedPortfolio);
-      
+      const dataSource = getDataSource();
+
+      if (dataSource === "mongodb") {
+        // For MongoDB, save just the new item
+        await savePortfolio(newItem);
+
+        // Get existing portfolio from cache for UI update
+        const existingPortfolio = getCachedPortfolio() || [];
+
+        // Update cache with new item (for UI consistency)
+        const updatedPortfolio = [...existingPortfolio, newItem];
+        setCache(updatedPortfolio);
+      } else {
+        // For JSONBin, get existing portfolio
+        const existingPortfolio = getCachedPortfolio() || [];
+
+        // Add new item
+        const updatedPortfolio = [...existingPortfolio, newItem];
+
+        // Save entire portfolio to JSONBin
+        await savePortfolio(updatedPortfolio);
+
+        // Update cache
+        setCache(updatedPortfolio);
+      }
+
       // Success - clear form and navigate
       setNewEntryText("");
       setJsonError("");
       navigate("/portfolio");
     } catch (err) {
       console.error("Failed to save portfolio entry:", err);
-      setJsonError(
-        "Failed to save portfolio entry. Please try again later."
-      );
+      setJsonError("Failed to save portfolio entry. Please try again later.");
     }
-    
+
     setIsSubmitting(false);
   };
 
@@ -144,7 +162,7 @@ export default function AddEntry() {
         </CardHeader>
         <CardContent>
           <pre className="bg-muted p-4 rounded-md overflow-x-auto text-xs">
-{`{
+            {`{
   "createdAt": "2023-06-01T12:00:00Z",  // ISO date string
   "total": "$10,000.00",                // Total portfolio value
   "crypto": [
