@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { getCachedPortfolio, setCache } from "@/lib/cacheHelper";
+import { getPortfolioEntries } from "@/lib/api";
 import {
   Card,
   CardContent,
@@ -25,22 +25,14 @@ export default function PortfolioDetail() {
   const fetchPortfolio = async () => {
     setIsLoading(true);
 
-    const cached = getCachedPortfolio();
-    if (cached) {
-      setPortfolio(cached);
+    try {
+      const data = await getPortfolioEntries();
+      setPortfolio(data);
+    } catch (error) {
+      console.error("Error fetching portfolio data:", error);
+    } finally {
       setIsLoading(false);
-      return;
     }
-
-    // try {
-    //   const data = await getPortfolioFromJsonBin();
-    //   setPortfolio(data);
-    //   setCache(data);
-    // } catch (err) {
-    //   console.error("Failed to fetch from JSONBin:", err);
-    // }
-
-    setIsLoading(false);
   };
 
   useEffect(() => {

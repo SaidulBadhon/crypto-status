@@ -11,7 +11,7 @@ import {
   CardFooter,
 } from "@/components/ui/card";
 import { addPortfolioEntry, addMultiplePortfolioEntries } from "@/lib/api";
-import { setCache, getCachedPortfolio } from "@/lib/cacheHelper";
+
 import { PortfolioItem } from "@/types";
 import { AlertCircle, Save, ArrowLeft } from "lucide-react";
 
@@ -91,8 +91,7 @@ export default function AddEntry() {
         return;
       }
 
-      // Get existing portfolio
-      const existingPortfolio = getCachedPortfolio() || [];
+      // No need to check existing portfolio anymore
 
       // Check if it's an array or a single object
       if (Array.isArray(parsedData)) {
@@ -133,23 +132,13 @@ export default function AddEntry() {
               throw new Error(`Missing parPrice for ${crypto.name}`);
           }
 
-          // Check for duplicate entry
-          const isDuplicate = existingPortfolio.some(
-            (existingItem) => existingItem.createdAt === item.createdAt
-          );
-          if (isDuplicate) {
-            throw new Error(
-              `An entry with timestamp ${item.createdAt} already exists. Please use different timestamps.`
-            );
-          }
+          // No need to check for duplicates as the API will handle it
         }
 
         // Add multiple items to MongoDB
         await addMultiplePortfolioEntries(portfolioItems);
 
-        // Update cache with the new items added to existing portfolio
-        const updatedPortfolio = [...existingPortfolio, ...portfolioItems];
-        setCache(updatedPortfolio);
+        // No need to update cache
 
         // Success - clear form and navigate
         setNewEntryText("");
@@ -187,22 +176,12 @@ export default function AddEntry() {
             throw new Error(`Missing parPrice for ${crypto.name}`);
         }
 
-        // Check for duplicate entry
-        const isDuplicate = existingPortfolio.some(
-          (item) => item.createdAt === newItem.createdAt
-        );
-        if (isDuplicate) {
-          throw new Error(
-            "An entry with this timestamp already exists. Please use a different timestamp."
-          );
-        }
+        // No need to check for duplicates as the API will handle it
 
         // Add new item to MongoDB
         await addPortfolioEntry(newItem);
 
-        // Update cache with the new item added to existing portfolio
-        const updatedPortfolio = [...existingPortfolio, newItem];
-        setCache(updatedPortfolio);
+        // No need to update cache
 
         // Success - clear form and navigate
         setNewEntryText("");

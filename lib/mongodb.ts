@@ -11,6 +11,9 @@ const options = {
     strict: true,
     deprecationErrors: true,
   },
+  ssl: true,
+  tlsAllowInvalidCertificates: false,
+  tlsAllowInvalidHostnames: false,
 };
 
 let client: MongoClient;

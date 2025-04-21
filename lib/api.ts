@@ -175,7 +175,7 @@ export const getPortfolioEntryById = async (
 };
 
 /**
- * Imports portfolio data from JSONBin (for migration)
+ * Imports multiple portfolio entries
  * @param {PortfolioItem[]} data - Portfolio data to import
  * @returns {Promise<{success: boolean, importedCount: number, message: string}>} Import result
  */
@@ -200,45 +200,4 @@ export const importPortfolioData = async (
     console.error("Error importing portfolio data:", error);
     throw error;
   }
-};
-
-// Legacy functions for backward compatibility during migration
-
-/**
- * Fetches portfolio data from JSONBin (legacy function)
- * @deprecated Use getPortfolioEntries instead
- * @returns {Promise<PortfolioItem[]>} Portfolio data
- */
-export const getPortfolioFromJsonBin = async (): Promise<PortfolioItem[]> => {
-  console.warn(
-    "getPortfolioFromJsonBin is deprecated. Use getPortfolioEntries instead."
-  );
-  return getPortfolioEntries();
-};
-
-/**
- * Saves portfolio data to JSONBin (legacy function)
- * @deprecated Use addPortfolioEntry for new entries
- * @param {PortfolioItem[]} data - Portfolio data to save
- * @returns {Promise<PortfolioItem[]>} Updated portfolio data
- */
-export const savePortfolioToJsonBin = async (
-  data: PortfolioItem[]
-): Promise<PortfolioItem[]> => {
-  console.warn(
-    "savePortfolioToJsonBin is deprecated. Use addPortfolioEntry for new entries."
-  );
-
-  // If it's a single entry being added (common case)
-  if (data.length > 0 && data[data.length - 1]) {
-    try {
-      const newEntry = await addPortfolioEntry(data[data.length - 1]);
-      return [...data.slice(0, -1), newEntry];
-    } catch (error) {
-      console.error("Error in savePortfolioToJsonBin:", error);
-      throw error;
-    }
-  }
-
-  return data;
 };

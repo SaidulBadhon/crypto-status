@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import ItemCard from "@/components/ItemCard";
 import { getPortfolioEntries } from "@/lib/api";
-import { getCachedPortfolio, setCache } from "@/lib/cacheHelper";
+
 import Link from "next/link";
 import { PortfolioItem } from "@/types";
 import { RefreshCw, Plus } from "lucide-react";
@@ -29,21 +29,10 @@ export default function Portfolio() {
     setIsLoading(true);
 
     try {
-      // Try to get from cache first if not forcing refresh
-      if (!forceRefresh) {
-        const cached = getCachedPortfolio();
-        if (cached && cached.length > 0) {
-          setPortfolio(cached);
-          setIsLoading(false);
-          return;
-        }
-      }
-
-      // Fetch from API if cache is invalid or forcing refresh
+      // Fetch from API
       const data = await getPortfolioEntries();
       if (data && data.length > 0) {
         setPortfolio(data);
-        setCache(data);
       } else {
         console.warn("No portfolio data received from API");
       }

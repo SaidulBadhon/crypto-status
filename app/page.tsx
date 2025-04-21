@@ -1,5 +1,5 @@
 "use client";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import CryptoChart from "../components/CryptoChart";
 import {
   Card,
@@ -16,9 +16,8 @@ import {
   RefreshCw,
 } from "lucide-react";
 
-// API and cache functions
+// API functions
 import { getPortfolioEntries } from "@/lib/api";
-import { getCachedPortfolio, setCache } from "@/lib/cacheHelper";
 import Link from "next/link";
 import { ChartDataPoint, PortfolioItem, PortfolioStats } from "@/types";
 
@@ -37,11 +36,7 @@ export default function Dashboard() {
     trend: "neutral",
   });
 
-  // Get the latest portfolio entry
-  const latestEntry = useMemo(
-    () => (portfolio?.length > 0 ? portfolio[portfolio.length - 1] : null),
-    [portfolio]
-  );
+  // Latest portfolio entry is used for stats calculation in handleSetSelectedData
 
   // Process data for selected coin
   const handleSetSelectedData = useCallback(
@@ -90,25 +85,14 @@ export default function Dashboard() {
   );
 
   // Fetch portfolio data
-  const fetchPortfolio = useCallback(async (forceRefresh = false) => {
+  const fetchPortfolio = useCallback(async () => {
     setIsLoading(true);
 
     try {
-      // Try to get from cache first if not forcing refresh
-      if (!forceRefresh) {
-        const cached = getCachedPortfolio();
-        if (cached && cached.length > 0) {
-          setPortfolio(cached);
-          setIsLoading(false);
-          return;
-        }
-      }
-
-      // Fetch from API if cache is invalid or forcing refresh
+      // Fetch from API
       const data = await getPortfolioEntries();
       if (data && data.length > 0) {
         setPortfolio(data);
-        setCache(data);
       } else {
         console.warn("No portfolio data received from API");
       }
@@ -246,7 +230,7 @@ export default function Dashboard() {
       {/* Refresh Button */}
       <div className="flex justify-end">
         <button
-          onClick={() => fetchPortfolio(true)}
+          onClick={() => fetchPortfolio()}
           className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors flex items-center gap-2"
           disabled={isLoading}
         >

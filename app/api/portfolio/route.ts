@@ -31,6 +31,8 @@ export async function POST(request: NextRequest) {
   try {
     const data = await request.json();
 
+    console.log("Received data:", data);
+
     // Check if the data is an array or a single object
     if (Array.isArray(data)) {
       // Handle array of portfolio items

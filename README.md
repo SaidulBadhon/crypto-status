@@ -70,15 +70,6 @@ A Next.js application for tracking your cryptocurrency portfolio over time.
    MONGODB_URI=mongodb://localhost:27017/crypto-portfolio
    ```
 
-## Migrating from JSONBin
-
-If you were previously using JSONBin for data storage, you can migrate your data to MongoDB:
-
-1. Navigate to the `/migrate` page in the application
-2. Enter your JSONBin ID and API Key
-3. Click "Migrate Data"
-4. Your data will be imported into MongoDB
-
 ## Project Structure
 
 - `/app` - Next.js app router pages and API routes
