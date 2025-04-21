@@ -17,7 +17,6 @@ import { redirect } from "next/navigation";
 
 export default function PortfolioDetail() {
   const { id } = useParams<any>();
-  const getPortfolioFromJsonBin = () => {};
 
   const [portfolio, setPortfolio] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -33,13 +32,13 @@ export default function PortfolioDetail() {
       return;
     }
 
-    try {
-      const data = await getPortfolioFromJsonBin();
-      setPortfolio(data);
-      setCache(data);
-    } catch (err) {
-      console.error("Failed to fetch from JSONBin:", err);
-    }
+    // try {
+    //   const data = await getPortfolioFromJsonBin();
+    //   setPortfolio(data);
+    //   setCache(data);
+    // } catch (err) {
+    //   console.error("Failed to fetch from JSONBin:", err);
+    // }
 
     setIsLoading(false);
   };
