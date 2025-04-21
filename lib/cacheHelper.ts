@@ -1,4 +1,11 @@
+import { PortfolioItem } from "@/types";
+
 const LOCAL_STORAGE_KEY = "cryptoPortfolioCache";
+
+interface CacheData {
+  data: PortfolioItem[];
+  timestamp: string;
+}
 
 /**
  * Checks if the cached data is still valid based on the timestamp
@@ -21,14 +28,16 @@ const isCacheValid = (timestamp: string): boolean => {
 
 /**
  * Gets cached portfolio data if it exists and is still valid
- * @returns {any[] | null} Cached portfolio data or null if not available
+ * @returns {PortfolioItem[] | null} Cached portfolio data or null if not available
  */
-const getCachedPortfolio = (): any[] | null => {
+const getCachedPortfolio = (): PortfolioItem[] | null => {
+  if (typeof window === "undefined") return null; // Server-side check
+
   const cached = localStorage.getItem(LOCAL_STORAGE_KEY);
   if (!cached) return null;
 
   try {
-    const parsed = JSON.parse(cached);
+    const parsed = JSON.parse(cached) as CacheData;
     return isCacheValid(parsed.timestamp) ? parsed.data : null;
   } catch (error) {
     console.error("Error parsing cached portfolio data:", error);
@@ -38,9 +47,11 @@ const getCachedPortfolio = (): any[] | null => {
 
 /**
  * Saves portfolio data to localStorage cache
- * @param {any[]} data - Portfolio data to cache
+ * @param {PortfolioItem[]} data - Portfolio data to cache
  */
-const setCache = (data: any[]): void => {
+const setCache = (data: PortfolioItem[]): void => {
+  if (typeof window === "undefined") return; // Server-side check
+
   try {
     localStorage.setItem(
       LOCAL_STORAGE_KEY,

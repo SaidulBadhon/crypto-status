@@ -1,9 +1,10 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import CryptoChart from "../components/CryptoChart";
 import {
   Card,
   CardContent,
+  CardDescription,
   CardHeader,
   CardTitle,
 } from "../components/ui/card";
@@ -12,23 +13,24 @@ import {
   TrendingUp,
   TrendingDown,
   DollarSign,
+  RefreshCw,
 } from "lucide-react";
 
 // API and cache functions
-// import { getPortfolioFromJsonBin } from "../api/portfolioApi";
+import { getPortfolioFromJsonBin } from "@/lib/api";
 import { getCachedPortfolio, setCache } from "@/lib/cacheHelper";
 import Link from "next/link";
+import { ChartDataPoint, PortfolioItem, PortfolioStats } from "@/types";
 
+// Define available coin options
 const COIN_OPTIONS = ["Total", "BTC", "ETH", "NEAR", "USDC", "USDT"];
 
 export default function Dashboard() {
-  const getPortfolioFromJsonBin = () => {};
-
   const [selectedCoin, setSelectedCoin] = useState("Total");
-  const [selectedData, setSelectedData] = useState<any[]>([]);
-  const [portfolio, setPortfolio] = useState<any[]>([]);
+  const [selectedData, setSelectedData] = useState<ChartDataPoint[]>([]);
+  const [portfolio, setPortfolio] = useState<PortfolioItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [stats, setStats] = useState({
+  const [stats, setStats] = useState<PortfolioStats>({
     totalValue: 0,
     change24h: 0,
     changePercentage: 0,
@@ -36,77 +38,115 @@ export default function Dashboard() {
   });
 
   // Get the latest portfolio entry
-  const latestEntry =
-    portfolio?.length > 0 ? portfolio[portfolio?.length - 1] : null;
+  const latestEntry = useMemo(
+    () => (portfolio?.length > 0 ? portfolio[portfolio.length - 1] : null),
+    [portfolio]
+  );
 
-  const handleSetSelectedData = (coinName: string) => {
-    const data = portfolio.map((item) => {
-      let value: number;
+  // Process data for selected coin
+  const handleSetSelectedData = useCallback(
+    (coinName: string) => {
+      if (!portfolio.length) return;
 
-      if (coinName === "Total") {
-        value = parseFloat(item.total.replace(/,/g, "").replace(/[^\d.]/g, ""));
-      } else {
-        const coin = item.crypto.find((c: any) => c.name === coinName);
-        value = coin ? parseFloat(coin.amount) : 0;
-      }
+      const data = portfolio.map((item) => {
+        let value: number;
 
-      return {
-        name: coinName,
-        date: item.createdAt,
-        value,
-      };
-    });
+        if (coinName === "Total") {
+          // Parse total value, removing commas and non-numeric characters
+          value = parseFloat(
+            item.total.replace(/,/g, "").replace(/[^\d.]/g, "")
+          );
+        } else {
+          // Find the specific coin in the portfolio
+          const coin = item.crypto.find((c) => c.name === coinName);
+          value = coin ? parseFloat(coin.amount) : 0;
+        }
 
-    setSelectedData(data);
-
-    // Calculate stats if we have enough data
-    if (data.length >= 2) {
-      const currentValue = data[data.length - 1].value;
-      const previousValue = data[data.length - 2].value;
-      const change = currentValue - previousValue;
-      const changePercentage = (change / previousValue) * 100;
-
-      setStats({
-        totalValue: currentValue,
-        change24h: change,
-        changePercentage,
-        trend: change >= 0 ? "up" : "down",
+        return {
+          name: coinName,
+          date: item.createdAt,
+          value,
+        };
       });
-    }
-  };
 
-  const fetchPortfolio = async (forceRefresh = false) => {
+      setSelectedData(data);
+
+      // Calculate stats if we have enough data
+      if (data.length >= 2) {
+        const currentValue = data[data.length - 1].value;
+        const previousValue = data[data.length - 2].value;
+        const change = currentValue - previousValue;
+        const changePercentage = (change / previousValue) * 100;
+
+        setStats({
+          totalValue: currentValue,
+          change24h: change,
+          changePercentage,
+          trend: change >= 0 ? "up" : "down",
+        });
+      }
+    },
+    [portfolio]
+  );
+
+  // Fetch portfolio data
+  const fetchPortfolio = useCallback(async (forceRefresh = false) => {
     setIsLoading(true);
 
-    if (!forceRefresh) {
-      const cached = getCachedPortfolio();
-      if (cached) {
-        setPortfolio(cached);
-        setIsLoading(false);
-        return;
-      }
-    }
-
     try {
+      // Try to get from cache first if not forcing refresh
+      if (!forceRefresh) {
+        const cached = getCachedPortfolio();
+        if (cached && cached.length > 0) {
+          setPortfolio(cached);
+          setIsLoading(false);
+          return;
+        }
+      }
+
+      // Fetch from API if cache is invalid or forcing refresh
       const data = await getPortfolioFromJsonBin();
-      setPortfolio(data);
-      setCache(data);
+      if (data && data.length > 0) {
+        setPortfolio(data);
+        setCache(data);
+      } else {
+        console.warn("No portfolio data received from API");
+      }
     } catch (err) {
-      console.error("Failed to fetch from JSONBin:", err);
+      console.error("Failed to fetch portfolio data:", err);
+      // Could show an error toast/notification here
+    } finally {
+      setIsLoading(false);
     }
-
-    setIsLoading(false);
-  };
-
-  useEffect(() => {
-    fetchPortfolio();
   }, []);
 
+  // Initial data fetch
+  useEffect(() => {
+    fetchPortfolio();
+  }, [fetchPortfolio]);
+
+  // Update selected data when coin or portfolio changes
   useEffect(() => {
     if (portfolio?.length > 0) {
       handleSetSelectedData(selectedCoin);
     }
-  }, [selectedCoin, portfolio]);
+  }, [selectedCoin, portfolio, handleSetSelectedData]);
+
+  // Loading skeleton for stats cards
+  const renderStatsSkeleton = () => (
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 animate-pulse">
+      {[1, 2, 3].map((i) => (
+        <Card key={i}>
+          <CardHeader className="pb-2">
+            <div className="h-4 bg-muted rounded w-24"></div>
+          </CardHeader>
+          <CardContent>
+            <div className="h-8 bg-muted rounded w-32"></div>
+          </CardContent>
+        </Card>
+      ))}
+    </div>
+  );
 
   return (
     <div className="space-y-6">
@@ -118,95 +158,109 @@ export default function Dashboard() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Total Portfolio Value
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center justify-between">
-              <div className="text-2xl font-bold">
-                $
-                {stats.totalValue.toLocaleString(undefined, {
-                  maximumFractionDigits: 2,
-                })}
+      {isLoading ? (
+        renderStatsSkeleton()
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                Total Portfolio Value
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center justify-between">
+                <div className="text-2xl font-bold">
+                  $
+                  {stats.totalValue.toLocaleString(undefined, {
+                    maximumFractionDigits: 2,
+                  })}
+                </div>
+                <DollarSign className="h-4 w-4 text-muted-foreground" />
               </div>
-              <DollarSign className="h-4 w-4 text-muted-foreground" />
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
 
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              24h Change
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center justify-between">
-              <div
-                className={`text-2xl font-bold ${
-                  stats.trend === "up"
-                    ? "text-green-500"
-                    : stats.trend === "down"
-                    ? "text-red-500"
-                    : ""
-                }`}
-              >
-                {stats.change24h >= 0 ? "+" : ""}$
-                {stats.change24h.toLocaleString(undefined, {
-                  maximumFractionDigits: 2,
-                })}
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                24h Change
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center justify-between">
+                <div
+                  className={`text-2xl font-bold ${
+                    stats.trend === "up"
+                      ? "text-green-500"
+                      : stats.trend === "down"
+                      ? "text-red-500"
+                      : ""
+                  }`}
+                >
+                  {stats.change24h >= 0 ? "+" : "-"}$
+                  {Math.abs(stats.change24h).toLocaleString(undefined, {
+                    maximumFractionDigits: 2,
+                  })}
+                </div>
+                {stats.trend === "up" ? (
+                  <TrendingUp className="h-4 w-4 text-green-500" />
+                ) : (
+                  <TrendingDown className="h-4 w-4 text-red-500" />
+                )}
               </div>
-              {stats.trend === "up" ? (
-                <TrendingUp className="h-4 w-4 text-green-500" />
-              ) : (
-                <TrendingDown className="h-4 w-4 text-red-500" />
-              )}
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
 
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Percentage Change
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center justify-between">
-              <div
-                className={`text-2xl font-bold ${
-                  stats.trend === "up"
-                    ? "text-green-500"
-                    : stats.trend === "down"
-                    ? "text-red-500"
-                    : ""
-                }`}
-              >
-                {stats.changePercentage >= 0 ? "+" : ""}
-                {stats.changePercentage.toFixed(2)}%
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                Percentage Change
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center justify-between">
+                <div
+                  className={`text-2xl font-bold ${
+                    stats.trend === "up"
+                      ? "text-green-500"
+                      : stats.trend === "down"
+                      ? "text-red-500"
+                      : ""
+                  }`}
+                >
+                  {stats.changePercentage >= 0 ? "+" : ""}
+                  {stats.changePercentage.toFixed(2)}%
+                </div>
+                {stats.trend === "up" ? (
+                  <TrendingUp className="h-4 w-4 text-green-500" />
+                ) : (
+                  <TrendingDown className="h-4 w-4 text-red-500" />
+                )}
               </div>
-              {stats.trend === "up" ? (
-                <TrendingUp className="h-4 w-4 text-green-500" />
-              ) : (
-                <TrendingDown className="h-4 w-4 text-red-500" />
-              )}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
 
       {/* Refresh Button */}
       <div className="flex justify-end">
         <button
           onClick={() => fetchPortfolio(true)}
-          className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"
+          className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors flex items-center gap-2"
           disabled={isLoading}
         >
-          {isLoading ? "Loading..." : "Refresh Data"}
+          {isLoading ? (
+            <>
+              <RefreshCw className="h-4 w-4 animate-spin" />
+              Loading...
+            </>
+          ) : (
+            <>
+              <RefreshCw className="h-4 w-4" />
+              Refresh Data
+            </>
+          )}
         </button>
       </div>
 
@@ -228,8 +282,30 @@ export default function Dashboard() {
       </div>
 
       {/* Chart */}
-      {selectedData.length > 0 && (
+      {isLoading ? (
+        <Card>
+          <CardHeader>
+            <div className="h-6 bg-muted rounded w-48 mb-2"></div>
+            <div className="h-4 bg-muted rounded w-64"></div>
+          </CardHeader>
+          <CardContent className="h-[400px] flex items-center justify-center">
+            <div className="h-full w-full bg-muted/30 rounded-md animate-pulse"></div>
+          </CardContent>
+        </Card>
+      ) : selectedData.length > 0 ? (
         <CryptoChart data={selectedData} coin={selectedCoin} />
+      ) : (
+        <Card>
+          <CardHeader>
+            <CardTitle>No Data Available</CardTitle>
+            <CardDescription>There is no data to display</CardDescription>
+          </CardHeader>
+          <CardContent className="h-[400px] flex items-center justify-center">
+            <p className="text-muted-foreground">
+              Add portfolio entries to see chart data
+            </p>
+          </CardContent>
+        </Card>
       )}
 
       {/* Quick Actions */}

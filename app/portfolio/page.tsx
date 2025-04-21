@@ -1,51 +1,89 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import ItemCard from "@/components/ItemCard";
-// import { getPortfolioFromJsonBin } from "../api/portfolioApi";
+import { getPortfolioFromJsonBin } from "@/lib/api";
 import { getCachedPortfolio, setCache } from "@/lib/cacheHelper";
 import Link from "next/link";
+import { PortfolioItem } from "@/types";
+import { RefreshCw, Plus } from "lucide-react";
 
 export default function Portfolio() {
-  const getPortfolioFromJsonBin = async () => {};
-
-  const [portfolio, setPortfolio] = useState<any[]>([]);
+  const [portfolio, setPortfolio] = useState<PortfolioItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [sortOrder, setSortOrder] = useState<"newest" | "oldest">("newest");
 
-  const sortedPortfolio =
-    portfolio?.sort((a, b) => {
+  // Memoize sorted portfolio to prevent unnecessary re-sorting
+  const sortedPortfolio = useMemo(() => {
+    if (!portfolio?.length) return [];
+
+    return [...portfolio].sort((a, b) => {
       const dateA = new Date(a.createdAt).getTime();
       const dateB = new Date(b.createdAt).getTime();
       return sortOrder === "newest" ? dateB - dateA : dateA - dateB;
-    }) || [];
+    });
+  }, [portfolio, sortOrder]);
 
-  const fetchPortfolio = async (forceRefresh = false) => {
+  // Fetch portfolio data with proper error handling
+  const fetchPortfolio = useCallback(async (forceRefresh = false) => {
     setIsLoading(true);
 
-    if (!forceRefresh) {
-      const cached = getCachedPortfolio();
-      if (cached) {
-        setPortfolio(cached);
-        setIsLoading(false);
-        return;
-      }
-    }
-
     try {
+      // Try to get from cache first if not forcing refresh
+      if (!forceRefresh) {
+        const cached = getCachedPortfolio();
+        if (cached && cached.length > 0) {
+          setPortfolio(cached);
+          setIsLoading(false);
+          return;
+        }
+      }
+
+      // Fetch from API if cache is invalid or forcing refresh
       const data = await getPortfolioFromJsonBin();
-      setPortfolio(data);
-      setCache(data);
+      if (data && data.length > 0) {
+        setPortfolio(data);
+        setCache(data);
+      } else {
+        console.warn("No portfolio data received from API");
+      }
     } catch (err) {
-      console.error("Failed to fetch from JSONBin:", err);
+      console.error("Failed to fetch portfolio data:", err);
+      // Could show an error toast/notification here
+    } finally {
+      setIsLoading(false);
     }
+  }, []);
 
-    setIsLoading(false);
-  };
-
+  // Initial data fetch
   useEffect(() => {
     fetchPortfolio();
-  }, []);
+  }, [fetchPortfolio]);
+
+  // Render portfolio card skeletons during loading
+  const renderSkeletons = () => (
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+      {[1, 2, 3, 4, 5, 6].map((i) => (
+        <div
+          key={i}
+          className="rounded-lg border bg-card text-card-foreground shadow-sm animate-pulse"
+        >
+          <div className="p-6 flex flex-col space-y-4">
+            <div className="h-7 bg-muted rounded w-1/2"></div>
+            <div className="h-4 bg-muted rounded w-1/3"></div>
+            <div className="space-y-3 pt-4">
+              {[1, 2, 3].map((j) => (
+                <div key={j} className="flex justify-between">
+                  <div className="h-5 bg-muted rounded w-1/4"></div>
+                  <div className="h-5 bg-muted rounded w-1/4"></div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
 
   return (
     <div className="space-y-6">
@@ -78,15 +116,26 @@ export default function Portfolio() {
         <div className="flex gap-2">
           <button
             onClick={() => fetchPortfolio(true)}
-            className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"
+            className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors flex items-center gap-2"
             disabled={isLoading}
           >
-            {isLoading ? "Loading..." : "Refresh Data"}
+            {isLoading ? (
+              <>
+                <RefreshCw className="h-4 w-4 animate-spin" />
+                Loading...
+              </>
+            ) : (
+              <>
+                <RefreshCw className="h-4 w-4" />
+                Refresh Data
+              </>
+            )}
           </button>
           <Link
             href="/add"
-            className="px-4 py-2 bg-secondary text-secondary-foreground rounded-md hover:bg-secondary/80 transition-colors"
+            className="px-4 py-2 bg-secondary text-secondary-foreground rounded-md hover:bg-secondary/80 transition-colors flex items-center gap-2"
           >
+            <Plus className="h-4 w-4" />
             Add New Entry
           </Link>
         </div>
@@ -94,19 +143,35 @@ export default function Portfolio() {
 
       {/* Portfolio Cards */}
       {isLoading ? (
-        <div className="text-center py-12">
-          <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-current border-r-transparent align-[-0.125em] motion-reduce:animate-[spin_1.5s_linear_infinite]"></div>
-          <p className="mt-4 text-muted-foreground">
-            Loading portfolio data...
-          </p>
-        </div>
+        renderSkeletons()
       ) : sortedPortfolio.length === 0 ? (
-        <div className="text-center py-12">
-          <p className="text-muted-foreground">No portfolio entries found.</p>
+        <div className="text-center py-12 border rounded-lg bg-card p-8">
+          <div className="mb-4 text-muted-foreground">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-12 w-12 mx-auto mb-4 text-muted-foreground/50"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={1.5}
+                d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"
+              />
+            </svg>
+            <p className="text-lg font-medium">No portfolio entries found</p>
+          </div>
+          <p className="text-muted-foreground mb-6">
+            Start tracking your crypto assets by adding your first portfolio
+            entry.
+          </p>
           <Link
             href="/add"
-            className="mt-4 inline-block px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"
+            className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"
           >
+            <Plus className="h-4 w-4" />
             Add Your First Entry
           </Link>
         </div>
