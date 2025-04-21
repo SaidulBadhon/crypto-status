@@ -397,8 +397,8 @@ export default function AddEntry() {
         </CardContent>
         <CardFooter className="text-sm text-muted-foreground">
           <p>
-            Tip: Use the "Use Single Sample" or "Use Multiple Samples" buttons
-            to get started with templates.
+            Tip: Use the &quot;Use Single Sample&quot; or &quot;Use Multiple
+            Samples&quot; buttons to get started with templates.
           </p>
         </CardFooter>
       </Card>
