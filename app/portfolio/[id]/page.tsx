@@ -60,7 +60,7 @@ export default function PortfolioDetail() {
         redirect("/portfolio");
       }
     }
-  }, [portfolio, id, navigate]);
+  }, [portfolio, id]);
 
   if (isLoading) {
     return (

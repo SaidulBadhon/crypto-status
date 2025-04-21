@@ -10,7 +10,7 @@ import {
   CardDescription,
   CardFooter,
 } from "@/components/ui/card";
-import { savePortfolioToJsonBin } from "@/lib/api";
+import { addPortfolioEntry } from "@/lib/api";
 import { setCache, getCachedPortfolio } from "@/lib/cacheHelper";
 import { PortfolioItem } from "@/types";
 import { AlertCircle, Save, ArrowLeft } from "lucide-react";
@@ -109,13 +109,11 @@ export default function AddEntry() {
         return;
       }
 
-      // Add new item
+      // Add new item to MongoDB
+      await addPortfolioEntry(newItem);
+
+      // Update cache with the new item added to existing portfolio
       const updatedPortfolio = [...existingPortfolio, newItem];
-
-      // Save to JSONBin
-      await savePortfolioToJsonBin(updatedPortfolio);
-
-      // Update cache
       setCache(updatedPortfolio);
 
       // Success - clear form and navigate

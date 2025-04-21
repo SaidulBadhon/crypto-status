@@ -9,6 +9,7 @@ import {
   Wallet,
   PlusCircle,
   Settings,
+  Database,
 } from "lucide-react";
 import Link from "next/link";
 import { useState, useEffect, useCallback } from "react";
@@ -93,6 +94,11 @@ export default function MainLayout({
       path: "/add",
       label: "Add Entry",
       icon: <PlusCircle className="h-4 w-4" />,
+    },
+    {
+      path: "/migrate",
+      label: "Migrate",
+      icon: <Database className="h-4 w-4" />,
     },
     {
       path: "/settings",

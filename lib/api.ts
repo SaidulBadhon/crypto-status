@@ -1,70 +1,212 @@
-import { PortfolioItem } from '@/types';
-
-// Environment variables should be properly set in .env.local
-// BIN_ID and API_KEY should be defined there
-const BIN_ID = process.env.NEXT_PUBLIC_JSONBIN_BIN_ID;
-const API_KEY = process.env.NEXT_PUBLIC_JSONBIN_API_KEY;
+import { PortfolioItem } from "@/types";
 
 /**
- * Fetches portfolio data from JSONBin
+ * Fetches all portfolio entries from the API
  * @returns {Promise<PortfolioItem[]>} Portfolio data
  */
-export const getPortfolioFromJsonBin = async (): Promise<PortfolioItem[]> => {
-  if (!BIN_ID || !API_KEY) {
-    console.error('JSONBin credentials not configured');
-    return [];
-  }
-
+export const getPortfolioEntries = async (): Promise<PortfolioItem[]> => {
   try {
-    const res = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest`, {
+    const res = await fetch("/api/portfolio", {
+      method: "GET",
       headers: {
-        'X-Master-Key': API_KEY,
+        "Content-Type": "application/json",
       },
       // Add cache: 'no-store' for dynamic data that changes frequently
-      cache: 'no-store',
+      cache: "no-store",
     });
 
     if (!res.ok) {
       throw new Error(`Failed to fetch: ${res.status} ${res.statusText}`);
     }
 
-    const result = await res.json();
-    return result.record || [];
+    return await res.json();
   } catch (error) {
-    console.error('Error fetching portfolio data:', error);
+    console.error("Error fetching portfolio data:", error);
     throw error;
   }
 };
 
 /**
- * Saves portfolio data to JSONBin
- * @param {PortfolioItem[]} data - Portfolio data to save
- * @returns {Promise<PortfolioItem[]>} Updated portfolio data
+ * Adds a new portfolio entry
+ * @param {PortfolioItem} entry - Portfolio entry to add
+ * @returns {Promise<PortfolioItem>} Added portfolio entry
  */
-export const savePortfolioToJsonBin = async (data: PortfolioItem[]): Promise<PortfolioItem[]> => {
-  if (!BIN_ID || !API_KEY) {
-    console.error('JSONBin credentials not configured');
-    throw new Error('JSONBin credentials not configured');
-  }
-
+export const addPortfolioEntry = async (
+  entry: PortfolioItem
+): Promise<PortfolioItem> => {
   try {
-    const res = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}`, {
-      method: 'PUT',
+    const res = await fetch("/api/portfolio", {
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
-        'X-Master-Key': API_KEY,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(entry),
+    });
+
+    if (!res.ok) {
+      const errorData = await res.json();
+      throw new Error(
+        errorData.error ||
+          `Failed to add entry: ${res.status} ${res.statusText}`
+      );
+    }
+
+    return await res.json();
+  } catch (error) {
+    console.error("Error adding portfolio entry:", error);
+    throw error;
+  }
+};
+
+/**
+ * Updates an existing portfolio entry
+ * @param {string} id - ID of the portfolio entry to update
+ * @param {Partial<PortfolioItem>} entry - Updated portfolio entry data
+ * @returns {Promise<PortfolioItem>} Updated portfolio entry
+ */
+export const updatePortfolioEntry = async (
+  id: string,
+  entry: Partial<PortfolioItem>
+): Promise<PortfolioItem> => {
+  try {
+    const res = await fetch(`/api/portfolio/${id}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(entry),
+    });
+
+    if (!res.ok) {
+      throw new Error(
+        `Failed to update entry: ${res.status} ${res.statusText}`
+      );
+    }
+
+    return await res.json();
+  } catch (error) {
+    console.error("Error updating portfolio entry:", error);
+    throw error;
+  }
+};
+
+/**
+ * Deletes a portfolio entry
+ * @param {string} id - ID of the portfolio entry to delete
+ * @returns {Promise<boolean>} True if the entry was deleted
+ */
+export const deletePortfolioEntry = async (id: string): Promise<boolean> => {
+  try {
+    const res = await fetch(`/api/portfolio/${id}`, {
+      method: "DELETE",
+    });
+
+    if (!res.ok) {
+      throw new Error(
+        `Failed to delete entry: ${res.status} ${res.statusText}`
+      );
+    }
+
+    const result = await res.json();
+    return result.success;
+  } catch (error) {
+    console.error("Error deleting portfolio entry:", error);
+    throw error;
+  }
+};
+
+/**
+ * Gets a portfolio entry by ID
+ * @param {string} id - ID of the portfolio entry to get
+ * @returns {Promise<PortfolioItem>} Portfolio entry
+ */
+export const getPortfolioEntryById = async (
+  id: string
+): Promise<PortfolioItem> => {
+  try {
+    const res = await fetch(`/api/portfolio/${id}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (!res.ok) {
+      throw new Error(`Failed to fetch entry: ${res.status} ${res.statusText}`);
+    }
+
+    return await res.json();
+  } catch (error) {
+    console.error("Error fetching portfolio entry:", error);
+    throw error;
+  }
+};
+
+/**
+ * Imports portfolio data from JSONBin (for migration)
+ * @param {PortfolioItem[]} data - Portfolio data to import
+ * @returns {Promise<{success: boolean, importedCount: number, message: string}>} Import result
+ */
+export const importPortfolioData = async (
+  data: PortfolioItem[]
+): Promise<{ success: boolean; importedCount: number; message: string }> => {
+  try {
+    const res = await fetch("/api/portfolio/import", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
       },
       body: JSON.stringify(data),
     });
 
     if (!res.ok) {
-      throw new Error(`Failed to save: ${res.status} ${res.statusText}`);
+      throw new Error(`Failed to import data: ${res.status} ${res.statusText}`);
     }
 
-    const result = await res.json();
-    return result.record;
+    return await res.json();
   } catch (error) {
-    console.error('Error saving portfolio data:', error);
+    console.error("Error importing portfolio data:", error);
     throw error;
   }
+};
+
+// Legacy functions for backward compatibility during migration
+
+/**
+ * Fetches portfolio data from JSONBin (legacy function)
+ * @deprecated Use getPortfolioEntries instead
+ * @returns {Promise<PortfolioItem[]>} Portfolio data
+ */
+export const getPortfolioFromJsonBin = async (): Promise<PortfolioItem[]> => {
+  console.warn(
+    "getPortfolioFromJsonBin is deprecated. Use getPortfolioEntries instead."
+  );
+  return getPortfolioEntries();
+};
+
+/**
+ * Saves portfolio data to JSONBin (legacy function)
+ * @deprecated Use addPortfolioEntry for new entries
+ * @param {PortfolioItem[]} data - Portfolio data to save
+ * @returns {Promise<PortfolioItem[]>} Updated portfolio data
+ */
+export const savePortfolioToJsonBin = async (
+  data: PortfolioItem[]
+): Promise<PortfolioItem[]> => {
+  console.warn(
+    "savePortfolioToJsonBin is deprecated. Use addPortfolioEntry for new entries."
+  );
+
+  // If it's a single entry being added (common case)
+  if (data.length > 0 && data[data.length - 1]) {
+    try {
+      const newEntry = await addPortfolioEntry(data[data.length - 1]);
+      return [...data.slice(0, -1), newEntry];
+    } catch (error) {
+      console.error("Error in savePortfolioToJsonBin:", error);
+      throw error;
+    }
+  }
+
+  return data;
 };

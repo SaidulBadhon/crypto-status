@@ -17,7 +17,7 @@ import {
 } from "lucide-react";
 
 // API and cache functions
-import { getPortfolioFromJsonBin } from "@/lib/api";
+import { getPortfolioEntries } from "@/lib/api";
 import { getCachedPortfolio, setCache } from "@/lib/cacheHelper";
 import Link from "next/link";
 import { ChartDataPoint, PortfolioItem, PortfolioStats } from "@/types";
@@ -105,7 +105,7 @@ export default function Dashboard() {
       }
 
       // Fetch from API if cache is invalid or forcing refresh
-      const data = await getPortfolioFromJsonBin();
+      const data = await getPortfolioEntries();
       if (data && data.length > 0) {
         setPortfolio(data);
         setCache(data);

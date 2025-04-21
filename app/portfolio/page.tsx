@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import ItemCard from "@/components/ItemCard";
-import { getPortfolioFromJsonBin } from "@/lib/api";
+import { getPortfolioEntries } from "@/lib/api";
 import { getCachedPortfolio, setCache } from "@/lib/cacheHelper";
 import Link from "next/link";
 import { PortfolioItem } from "@/types";
@@ -40,7 +40,7 @@ export default function Portfolio() {
       }
 
       // Fetch from API if cache is invalid or forcing refresh
-      const data = await getPortfolioFromJsonBin();
+      const data = await getPortfolioEntries();
       if (data && data.length > 0) {
         setPortfolio(data);
         setCache(data);
