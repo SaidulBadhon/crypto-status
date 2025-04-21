@@ -84,7 +84,8 @@ export default function AddEntry() {
       let parsedData: PortfolioItem | PortfolioItem[];
       try {
         parsedData = JSON.parse(newEntryText);
-      } catch (err) {
+      } catch (err: any) {
+        console.error("Failed to parse JSON:", err);
         setJsonError("Invalid JSON format. Please check your input.");
         setIsSubmitting(false);
         return;

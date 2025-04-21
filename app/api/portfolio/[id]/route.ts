@@ -1,19 +1,16 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { 
-  getPortfolioEntryById, 
-  updatePortfolioEntry, 
-  deletePortfolioEntry 
-} from '@/lib/db/portfolio';
-import { PortfolioItem } from '@/types';
+import { NextRequest, NextResponse } from "next/server";
+import {
+  getPortfolioEntryById,
+  updatePortfolioEntry,
+  deletePortfolioEntry,
+} from "@/lib/db/portfolio";
+import { PortfolioItem } from "@/types";
 
 /**
  * GET /api/portfolio/[id]
  * Get a portfolio entry by ID
  */
-export async function GET(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function GET(request: NextRequest, { params }: { params: any }) {
   try {
     const id = params.id;
     const portfolioEntry = await getPortfolioEntryById(id);
@@ -21,7 +18,7 @@ export async function GET(
   } catch (error) {
     console.error(`Error in GET /api/portfolio/${params.id}:`, error);
     return NextResponse.json(
-      { error: 'Failed to fetch portfolio entry' },
+      { error: "Failed to fetch portfolio entry" },
       { status: 404 }
     );
   }
@@ -37,15 +34,15 @@ export async function PUT(
 ) {
   try {
     const id = params.id;
-    const portfolioItem = await request.json() as Partial<PortfolioItem>;
-    
+    const portfolioItem = (await request.json()) as Partial<PortfolioItem>;
+
     // Update the portfolio entry
     const result = await updatePortfolioEntry(id, portfolioItem);
     return NextResponse.json(result);
   } catch (error) {
     console.error(`Error in PUT /api/portfolio/${params.id}:`, error);
     return NextResponse.json(
-      { error: 'Failed to update portfolio entry' },
+      { error: "Failed to update portfolio entry" },
       { status: 500 }
     );
   }
@@ -62,19 +59,19 @@ export async function DELETE(
   try {
     const id = params.id;
     const result = await deletePortfolioEntry(id);
-    
+
     if (result) {
       return NextResponse.json({ success: true });
     } else {
       return NextResponse.json(
-        { error: 'Portfolio entry not found' },
+        { error: "Portfolio entry not found" },
         { status: 404 }
       );
     }
   } catch (error) {
     console.error(`Error in DELETE /api/portfolio/${params.id}:`, error);
     return NextResponse.json(
-      { error: 'Failed to delete portfolio entry' },
+      { error: "Failed to delete portfolio entry" },
       { status: 500 }
     );
   }

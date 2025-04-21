@@ -262,8 +262,8 @@ export default function Settings() {
             <h3 className="font-medium">Data Storage</h3>
             <p className="text-sm text-muted-foreground mt-1">
               This application stores your portfolio data in JSONBin and caches
-              it in your browser's local storage for faster access. No personal
-              data is collected.
+              it in your browser&apos;s local storage for faster access. No
+              personal data is collected.
             </p>
           </div>
         </CardContent>

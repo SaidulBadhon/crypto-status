@@ -1,8 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-// import { useParams, useNavigate } from "react-router-dom";
-// import { getPortfolioFromJsonBin } from "../api/portfolioApi";
 import { getCachedPortfolio, setCache } from "@/lib/cacheHelper";
 import {
   Card,
@@ -13,7 +11,7 @@ import {
 } from "@/components/ui/card";
 import Image from "@/components/image";
 import moment from "moment";
-import { ArrowLeft, Trash2 } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { useParams } from "next/navigation";
 import { redirect } from "next/navigation";
 
