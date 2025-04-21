@@ -59,6 +59,38 @@ export const addPortfolioEntry = async (
 };
 
 /**
+ * Adds multiple portfolio entries
+ * @param {PortfolioItem[]} entries - Portfolio entries to add
+ * @returns {Promise<{success: boolean, count: number, entries: PortfolioItem[]}>} Result with added entries
+ */
+export const addMultiplePortfolioEntries = async (
+  entries: PortfolioItem[]
+): Promise<{ success: boolean; count: number; entries: PortfolioItem[] }> => {
+  try {
+    const res = await fetch("/api/portfolio", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(entries),
+    });
+
+    if (!res.ok) {
+      const errorData = await res.json();
+      throw new Error(
+        errorData.error ||
+          `Failed to add entries: ${res.status} ${res.statusText}`
+      );
+    }
+
+    return await res.json();
+  } catch (error) {
+    console.error("Error adding multiple portfolio entries:", error);
+    throw error;
+  }
+};
+
+/**
  * Updates an existing portfolio entry
  * @param {string} id - ID of the portfolio entry to update
  * @param {Partial<PortfolioItem>} entry - Updated portfolio entry data

@@ -10,7 +10,7 @@ import {
   CardDescription,
   CardFooter,
 } from "@/components/ui/card";
-import { addPortfolioEntry } from "@/lib/api";
+import { addPortfolioEntry, addMultiplePortfolioEntries } from "@/lib/api";
 import { setCache, getCachedPortfolio } from "@/lib/cacheHelper";
 import { PortfolioItem } from "@/types";
 import { AlertCircle, Save, ArrowLeft } from "lucide-react";
@@ -23,7 +23,7 @@ export default function AddEntry() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Generate a sample entry with current date
-  const generateSampleEntry = () => {
+  const generateSampleEntry = (isArray = false) => {
     const now = new Date().toISOString();
     const sample = {
       createdAt: now,
@@ -43,6 +43,34 @@ export default function AddEntry() {
         },
       ],
     };
+
+    if (isArray) {
+      // Create a second sample with a different timestamp (1 hour later)
+      const laterTime = new Date(
+        new Date(now).getTime() + 60 * 60 * 1000
+      ).toISOString();
+      const secondSample = {
+        ...sample,
+        createdAt: laterTime,
+        total: "$10,500.00",
+        crypto: [
+          {
+            name: "BTC",
+            amount: "0.27",
+            amountInUsdt: "8,100",
+            parPrice: "$30,000",
+          },
+          {
+            name: "ETH",
+            amount: "1.2",
+            amountInUsdt: "2,400",
+            parPrice: "$2,000",
+          },
+        ],
+      };
+      return JSON.stringify([sample, secondSample], null, 2);
+    }
+
     return JSON.stringify(sample, null, 2);
   };
 
@@ -52,10 +80,83 @@ export default function AddEntry() {
     setIsSubmitting(true);
 
     try {
-      // Validate JSON
-      let newItem: PortfolioItem;
+      // Parse JSON
+      let parsedData: PortfolioItem | PortfolioItem[];
       try {
-        newItem = JSON.parse(newEntryText);
+        parsedData = JSON.parse(newEntryText);
+      } catch (err) {
+        setJsonError("Invalid JSON format. Please check your input.");
+        setIsSubmitting(false);
+        return;
+      }
+
+      // Get existing portfolio
+      const existingPortfolio = getCachedPortfolio() || [];
+
+      // Check if it's an array or a single object
+      if (Array.isArray(parsedData)) {
+        // Handle array of portfolio items
+        const portfolioItems = parsedData as PortfolioItem[];
+
+        // Validate each item
+        for (const item of portfolioItems) {
+          // Validate required fields
+          if (!item.createdAt) {
+            throw new Error(
+              `Missing required field: createdAt in one of the entries`
+            );
+          }
+          if (!item.total) {
+            throw new Error(
+              `Missing required field: total in one of the entries`
+            );
+          }
+          if (
+            !item.crypto ||
+            !Array.isArray(item.crypto) ||
+            item.crypto.length === 0
+          ) {
+            throw new Error(
+              `Missing or invalid field: crypto (must be a non-empty array) in one of the entries`
+            );
+          }
+
+          // Validate crypto items
+          for (const crypto of item.crypto) {
+            if (!crypto.name) throw new Error(`Missing name in crypto item`);
+            if (!crypto.amount)
+              throw new Error(`Missing amount for ${crypto.name}`);
+            if (!crypto.amountInUsdt)
+              throw new Error(`Missing amountInUsdt for ${crypto.name}`);
+            if (!crypto.parPrice)
+              throw new Error(`Missing parPrice for ${crypto.name}`);
+          }
+
+          // Check for duplicate entry
+          const isDuplicate = existingPortfolio.some(
+            (existingItem) => existingItem.createdAt === item.createdAt
+          );
+          if (isDuplicate) {
+            throw new Error(
+              `An entry with timestamp ${item.createdAt} already exists. Please use different timestamps.`
+            );
+          }
+        }
+
+        // Add multiple items to MongoDB
+        await addMultiplePortfolioEntries(portfolioItems);
+
+        // Update cache with the new items added to existing portfolio
+        const updatedPortfolio = [...existingPortfolio, ...portfolioItems];
+        setCache(updatedPortfolio);
+
+        // Success - clear form and navigate
+        setNewEntryText("");
+        setJsonError("");
+        router.push("/portfolio");
+      } else {
+        // Handle single portfolio item
+        const newItem = parsedData as PortfolioItem;
 
         // Validate required fields
         if (!newItem.createdAt) {
@@ -84,45 +185,36 @@ export default function AddEntry() {
           if (!crypto.parPrice)
             throw new Error(`Missing parPrice for ${crypto.name}`);
         }
-      } catch (err) {
-        setJsonError(
-          err instanceof Error
-            ? err.message
-            : "Invalid JSON format. Please check your input."
+
+        // Check for duplicate entry
+        const isDuplicate = existingPortfolio.some(
+          (item) => item.createdAt === newItem.createdAt
         );
-        setIsSubmitting(false);
-        return;
+        if (isDuplicate) {
+          throw new Error(
+            "An entry with this timestamp already exists. Please use a different timestamp."
+          );
+        }
+
+        // Add new item to MongoDB
+        await addPortfolioEntry(newItem);
+
+        // Update cache with the new item added to existing portfolio
+        const updatedPortfolio = [...existingPortfolio, newItem];
+        setCache(updatedPortfolio);
+
+        // Success - clear form and navigate
+        setNewEntryText("");
+        setJsonError("");
+        router.push("/portfolio");
       }
-
-      // Get existing portfolio
-      const existingPortfolio = getCachedPortfolio() || [];
-
-      // Check for duplicate entry
-      const isDuplicate = existingPortfolio.some(
-        (item) => item.createdAt === newItem.createdAt
-      );
-      if (isDuplicate) {
-        setJsonError(
-          "An entry with this timestamp already exists. Please use a different timestamp."
-        );
-        setIsSubmitting(false);
-        return;
-      }
-
-      // Add new item to MongoDB
-      await addPortfolioEntry(newItem);
-
-      // Update cache with the new item added to existing portfolio
-      const updatedPortfolio = [...existingPortfolio, newItem];
-      setCache(updatedPortfolio);
-
-      // Success - clear form and navigate
-      setNewEntryText("");
-      setJsonError("");
-      router.push("/portfolio");
     } catch (err) {
       console.error("Failed to save portfolio entry:", err);
-      setJsonError("Failed to save portfolio entry. Please try again later.");
+      setJsonError(
+        err instanceof Error
+          ? err.message
+          : "Failed to save portfolio entry. Please try again later."
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -132,8 +224,8 @@ export default function AddEntry() {
     router.push("/portfolio");
   };
 
-  const handleUseSample = () => {
-    setNewEntryText(generateSampleEntry());
+  const handleUseSample = (isArray: boolean = false) => {
+    setNewEntryText(generateSampleEntry(isArray));
     setJsonError("");
   };
 
@@ -163,18 +255,29 @@ export default function AddEntry() {
                 >
                   Portfolio JSON
                 </label>
-                <button
-                  type="button"
-                  onClick={handleUseSample}
-                  className="text-xs text-primary hover:underline"
-                >
-                  Use Sample Data
-                </button>
+                <div className="flex gap-3">
+                  <button
+                    type="button"
+                    onClick={() => handleUseSample(false)}
+                    className="text-xs text-primary hover:underline"
+                  >
+                    Use Single Sample
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleUseSample(true)}
+                    className="text-xs text-primary hover:underline"
+                  >
+                    Use Multiple Samples
+                  </button>
+                </div>
               </div>
               <textarea
                 id="portfolio-json"
                 className="w-full h-64 p-3 border rounded-md font-mono text-sm bg-background resize-none focus:outline-none focus:ring-2 focus:ring-primary"
-                placeholder={`Paste JSON in this format:
+                placeholder={`Paste JSON in one of these formats:
+
+// Single entry:
 {
   "createdAt": "2023-06-01T12:00:00Z",
   "total": "$10,000.00",
@@ -187,7 +290,21 @@ export default function AddEntry() {
     },
     ...
   ]
-}`}
+}
+
+// OR multiple entries as an array:
+[
+  {
+    "createdAt": "2023-06-01T12:00:00Z",
+    "total": "$10,000.00",
+    "crypto": [...]
+  },
+  {
+    "createdAt": "2023-06-02T12:00:00Z",
+    "total": "$10,500.00",
+    "crypto": [...]
+  }
+]`}
                 value={newEntryText}
                 onChange={(e) => setNewEntryText(e.target.value)}
                 required
@@ -243,7 +360,8 @@ export default function AddEntry() {
         </CardHeader>
         <CardContent>
           <pre className="bg-muted p-4 rounded-md overflow-x-auto text-xs">
-            {`{
+            {`// Single Entry Format
+{
   "createdAt": "2023-06-01T12:00:00Z",  // ISO date string
   "total": "$10,000.00",                // Total portfolio value
   "crypto": [
@@ -260,13 +378,27 @@ export default function AddEntry() {
       "parPrice": "$2,000"
     }
   ]
-}`}
+}
+
+// Multiple Entries Format (Array)
+[
+  {
+    "createdAt": "2023-06-01T12:00:00Z",
+    "total": "$10,000.00",
+    "crypto": [ ... ]
+  },
+  {
+    "createdAt": "2023-06-02T12:00:00Z",
+    "total": "$10,500.00",
+    "crypto": [ ... ]
+  }
+]`}
           </pre>
         </CardContent>
         <CardFooter className="text-sm text-muted-foreground">
           <p>
-            Tip: Use the "Use Sample Data" button to get started with a
-            template.
+            Tip: Use the "Use Single Sample" or "Use Multiple Samples" buttons
+            to get started with templates.
           </p>
         </CardFooter>
       </Card>
