@@ -155,6 +155,7 @@ function CryptoChart({ data: chartData, coin }: CryptoChartProps) {
                     moment(label).format("MMM D, YYYY")
                   }
                 />
+
                 <ChartTooltip
                   cursor={{ strokeDasharray: "3 3" }}
                   content={
