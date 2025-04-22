@@ -10,10 +10,11 @@ import {
   CardDescription,
   CardFooter,
 } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { addPortfolioEntry, addMultiplePortfolioEntries } from "@/lib/api";
 
 import { PortfolioItem } from "@/types";
-import { AlertCircle, Save, ArrowLeft } from "lucide-react";
+import { AlertCircle, Save, ArrowLeft, Image as ImageIcon } from "lucide-react";
 
 export default function AddEntry() {
   const router = useRouter();
@@ -216,6 +217,53 @@ export default function AddEntry() {
         <p className="text-muted-foreground">
           Add a new snapshot of your crypto portfolio
         </p>
+      </div>
+
+      <div className="flex flex-col sm:flex-row gap-4">
+        <Card className="flex-1">
+          <CardHeader>
+            <CardTitle>Manual Entry</CardTitle>
+            <CardDescription>
+              Manually enter your portfolio data in JSON format
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-muted-foreground mb-4">
+              Enter your portfolio data manually by pasting JSON data in the
+              format shown below.
+            </p>
+            <Button
+              onClick={() => router.push("/add/manual")}
+              className="w-full flex items-center justify-center gap-2"
+            >
+              <Save className="h-4 w-4" />
+              Continue with Manual Entry
+            </Button>
+          </CardContent>
+        </Card>
+
+        <Card className="flex-1">
+          <CardHeader>
+            <CardTitle>Image Upload</CardTitle>
+            <CardDescription>
+              Extract portfolio data from images using AI
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-muted-foreground mb-4">
+              Upload screenshots of your portfolio and let AI extract the data
+              automatically.
+            </p>
+            <Button
+              onClick={() => router.push("/add/image")}
+              className="w-full flex items-center justify-center gap-2"
+              variant="secondary"
+            >
+              <ImageIcon className="h-4 w-4" />
+              Continue with Image Upload
+            </Button>
+          </CardContent>
+        </Card>
       </div>
 
       <Card>

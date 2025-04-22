@@ -350,3 +350,32 @@ export const getTransactionById = async (id: string): Promise<Transaction> => {
     throw error;
   }
 };
+
+/**
+ * Analyzes images and extracts portfolio data using OpenAI
+ * @param {FormData} formData - Form data containing images
+ * @returns {Promise<{success: boolean, portfolioItems: PortfolioItem[]}>} Analysis result
+ */
+export const analyzeImagesWithOpenAI = async (
+  formData: FormData
+): Promise<{ success: boolean; portfolioItems: PortfolioItem[] }> => {
+  try {
+    const res = await fetch("/api/image-analysis", {
+      method: "POST",
+      body: formData,
+    });
+
+    if (!res.ok) {
+      const errorData = await res.json();
+      throw new Error(
+        errorData.message ||
+          `Failed to analyze images: ${res.status} ${res.statusText}`
+      );
+    }
+
+    return await res.json();
+  } catch (error) {
+    console.error("Error analyzing images:", error);
+    throw error;
+  }
+};
