@@ -1,26 +1,38 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { getPortfolioEntries } from "@/lib/api";
+import { getPortfolioEntries, deletePortfolioEntry } from "@/lib/api";
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
   CardDescription,
+  CardFooter,
 } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import Image from "@/components/image";
 import moment from "moment";
-import { ArrowLeft } from "lucide-react";
-import { useParams } from "next/navigation";
-import { redirect } from "next/navigation";
+import { ArrowLeft, Trash2, AlertTriangle, Loader2 } from "lucide-react";
+import { useParams, useRouter } from "next/navigation";
 
 export default function PortfolioDetail() {
   const { id } = useParams<any>();
+  const router = useRouter();
 
   const [portfolio, setPortfolio] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [portfolioItem, setPortfolioItem] = useState<any>(null);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
   const fetchPortfolio = async () => {
     setIsLoading(true);
@@ -64,15 +76,41 @@ export default function PortfolioDetail() {
     return (
       <div className="text-center py-12">
         <p className="text-muted-foreground">Portfolio entry not found.</p>
-        <button
-          onClick={() => redirect("/portfolio")}
-          className="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"
+        <Button
+          onClick={() => router.push("/portfolio")}
+          className="mt-4 inline-flex items-center gap-2"
         >
           <ArrowLeft className="h-4 w-4" /> Back to Portfolio
-        </button>
+        </Button>
       </div>
     );
   }
+
+  // Handle delete portfolio entry
+  const handleDelete = async () => {
+    if (!portfolioItem._id) {
+      console.error("Cannot delete: No portfolio ID found");
+      return;
+    }
+
+    setIsDeleting(true);
+
+    try {
+      const success = await deletePortfolioEntry(portfolioItem._id);
+
+      if (success) {
+        // Close dialog and redirect to portfolio list
+        setShowDeleteDialog(false);
+        router.push("/portfolio");
+      } else {
+        console.error("Failed to delete portfolio entry");
+        setIsDeleting(false);
+      }
+    } catch (error) {
+      console.error("Error deleting portfolio entry:", error);
+      setIsDeleting(false);
+    }
+  };
 
   // Calculate total value in USDT
   const totalUSDT = portfolioItem.crypto.reduce(
@@ -84,12 +122,21 @@ export default function PortfolioDetail() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <button
-          onClick={() => redirect("/portfolio")}
-          className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
+        <Button
+          variant="ghost"
+          onClick={() => router.push("/portfolio")}
+          className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground"
         >
           <ArrowLeft className="h-4 w-4" /> Back to Portfolio
-        </button>
+        </Button>
+
+        <Button
+          variant="destructive"
+          onClick={() => setShowDeleteDialog(true)}
+          className="inline-flex items-center gap-2"
+        >
+          <Trash2 className="h-4 w-4" /> Delete Entry
+        </Button>
       </div>
 
       <div className="flex flex-col gap-2">
@@ -184,5 +231,57 @@ export default function PortfolioDetail() {
         </CardContent>
       </Card>
     </div>
+
+    {/* Delete Confirmation Dialog */}
+    <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <AlertTriangle className="h-5 w-5 text-destructive" />
+            Confirm Deletion
+          </DialogTitle>
+          <DialogDescription>
+            Are you sure you want to delete this portfolio entry? This action cannot be undone.
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="py-4">
+          <p className="text-sm font-medium">Entry details:</p>
+          <p className="text-sm text-muted-foreground">
+            Date: {moment.utc(portfolioItem.createdAt).format("MMMM D, YYYY [at] h:mm A")}
+          </p>
+          <p className="text-sm text-muted-foreground">
+            Total Value: {portfolioItem.total}
+          </p>
+          <p className="text-sm text-muted-foreground">
+            Assets: {portfolioItem.crypto.length} cryptocurrencies
+          </p>
+        </div>
+
+        <DialogFooter>
+          <Button
+            variant="outline"
+            onClick={() => setShowDeleteDialog(false)}
+            disabled={isDeleting}
+          >
+            Cancel
+          </Button>
+          <Button
+            variant="destructive"
+            onClick={handleDelete}
+            disabled={isDeleting}
+          >
+            {isDeleting ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                Deleting...
+              </>
+            ) : (
+              <>Delete</>
+            )}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
