@@ -17,10 +17,7 @@ export async function getAllTransactions(): Promise<Transaction[]> {
     const collection = db.collection(COLLECTION_NAME);
 
     // Find all documents and sort by date in descending order
-    const transactions = await collection
-      .find({})
-      .sort({ date: -1 })
-      .toArray();
+    const transactions = await collection.find({}).sort({ date: -1 }).toArray();
 
     return transactions as unknown as Transaction[];
   } catch (error) {
@@ -34,7 +31,9 @@ export async function getAllTransactions(): Promise<Transaction[]> {
  * @param coin The coin symbol (e.g., BTC, ETH)
  * @returns Array of transactions for the specified coin
  */
-export async function getTransactionsByCoin(coin: string): Promise<Transaction[]> {
+export async function getTransactionsByCoin(
+  coin: string
+): Promise<Transaction[]> {
   try {
     const client = await clientPromise;
     const db = client.db(DB_NAME);
@@ -58,9 +57,7 @@ export async function getTransactionsByCoin(coin: string): Promise<Transaction[]
  * @param transaction The transaction to add
  * @returns The added transaction
  */
-export async function addTransaction(
-  transaction: Transaction
-): Promise<Transaction> {
+export async function addTransaction(transaction: any): Promise<any> {
   try {
     const client = await clientPromise;
     const db = client.db(DB_NAME);

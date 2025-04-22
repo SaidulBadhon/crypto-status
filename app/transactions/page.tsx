@@ -165,7 +165,7 @@ export default function TransactionsPage() {
     }
   });
 
-  // Render loading skeletons
+  // Render loading skeletons for table
   const renderSkeletons = () => {
     return Array(5)
       .fill(0)
@@ -197,6 +197,100 @@ export default function TransactionsPage() {
           </td>
         </tr>
       ));
+  };
+
+  // Render loading skeletons for mobile cards
+  const renderCardSkeletons = () => {
+    return Array(5)
+      .fill(0)
+      .map((_, i) => (
+        <div key={i} className="animate-pulse border rounded-lg p-4 mb-4">
+          <div className="flex justify-between items-center mb-3">
+            <div className="h-5 bg-muted rounded w-16"></div>
+            <div className="h-4 bg-muted rounded w-24"></div>
+          </div>
+          <div className="space-y-2">
+            <div className="flex justify-between">
+              <div className="h-4 bg-muted rounded w-12"></div>
+              <div className="h-4 bg-muted rounded w-16"></div>
+            </div>
+            <div className="flex justify-between">
+              <div className="h-4 bg-muted rounded w-20"></div>
+              <div className="h-4 bg-muted rounded w-20"></div>
+            </div>
+            <div className="flex justify-between">
+              <div className="h-4 bg-muted rounded w-24"></div>
+              <div className="h-4 bg-muted rounded w-12"></div>
+            </div>
+          </div>
+        </div>
+      ));
+  };
+
+  // Render transaction cards for mobile
+  const renderTransactionCards = () => {
+    if (sortedTransactions.length === 0) {
+      return (
+        <div className="text-center py-8 text-muted-foreground">
+          No transactions found. Add your first transaction to get started.
+        </div>
+      );
+    }
+
+    return sortedTransactions.map((transaction) => (
+      <div
+        key={transaction._id}
+        className="border rounded-lg p-4 mb-4 hover:bg-muted/50 transition-colors"
+      >
+        <div className="flex justify-between items-center mb-3">
+          <span
+            className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+              transaction.type === "buy"
+                ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300"
+                : "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300"
+            }`}
+          >
+            {transaction.type.toUpperCase()}
+          </span>
+          <span className="text-sm text-muted-foreground">
+            {moment(transaction.date).format("MMM D, YYYY HH:mm")}
+          </span>
+        </div>
+
+        <div className="space-y-2">
+          <div className="flex justify-between">
+            <span className="text-sm text-muted-foreground">Coin</span>
+            <span className="font-medium">{transaction.coin}</span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-sm text-muted-foreground">Amount</span>
+            <span>{transaction.amount}</span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-sm text-muted-foreground">Price</span>
+            <span>${transaction.pricePerCoin}</span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-sm text-muted-foreground">Total Value</span>
+            <span>${transaction.totalValue}</span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-sm text-muted-foreground">Fee</span>
+            <span>${transaction.fee}</span>
+          </div>
+        </div>
+
+        <div className="mt-4 flex justify-end">
+          <button
+            onClick={() => confirmDelete(transaction._id!)}
+            className="p-2 text-red-500 hover:text-red-700 transition-colors rounded-full hover:bg-red-100 dark:hover:bg-red-900/30"
+            title="Delete transaction"
+          >
+            <Trash2 className="h-4 w-4" />
+          </button>
+        </div>
+      </div>
+    ));
   };
 
   // Handle delete confirmation
@@ -401,7 +495,7 @@ export default function TransactionsPage() {
         </div>
       </div>
 
-      {/* Transactions Table */}
+      {/* Transactions History */}
       <Card>
         <CardHeader>
           <CardTitle>Transaction History</CardTitle>
@@ -410,7 +504,8 @@ export default function TransactionsPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="overflow-x-auto">
+          {/* Desktop Table View */}
+          <div className="hidden md:block overflow-x-auto">
             <table className="w-full border-collapse">
               <thead>
                 <tr className="bg-muted/50">
@@ -556,6 +651,42 @@ export default function TransactionsPage() {
                 )}
               </tbody>
             </table>
+          </div>
+
+          {/* Mobile Card View */}
+          <div className="md:hidden">
+            {/* Mobile Sorting Controls */}
+            <div className="mb-4 flex items-center justify-between">
+              <div className="text-sm font-medium">Sort by:</div>
+              <div className="flex gap-2">
+                <select
+                  value={sortField}
+                  onChange={(e) =>
+                    setSortField(e.target.value as keyof Transaction)
+                  }
+                  className="px-2 py-1 text-sm border rounded-md bg-background"
+                >
+                  <option value="date">Date</option>
+                  <option value="type">Type</option>
+                  <option value="coin">Coin</option>
+                  <option value="amount">Amount</option>
+                  <option value="pricePerCoin">Price</option>
+                  <option value="totalValue">Total Value</option>
+                  <option value="fee">Fee</option>
+                </select>
+                <button
+                  onClick={() =>
+                    setSortDirection(sortDirection === "asc" ? "desc" : "asc")
+                  }
+                  className="px-2 py-1 text-sm border rounded-md bg-background flex items-center gap-1"
+                >
+                  {sortDirection === "asc" ? "Ascending" : "Descending"}
+                  <ArrowUpDown className="h-3 w-3" />
+                </button>
+              </div>
+            </div>
+
+            {isLoading ? renderCardSkeletons() : renderTransactionCards()}
           </div>
         </CardContent>
       </Card>
