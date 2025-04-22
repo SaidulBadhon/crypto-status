@@ -27,7 +27,7 @@ export async function analyzeImageWithOpenAI(
         messages: [
           {
             role: "system",
-            "You are a specialized assistant that extracts cryptocurrency portfolio data from images. Extract all cryptocurrency names, amounts, prices, and values in USDT. Format the response as a valid JSON object.",
+            // "You are a specialized assistant that extracts cryptocurrency portfolio data from images. Extract all cryptocurrency names, amounts, prices, and values in USDT. Format the response as a valid JSON object.",
             content: `Please return current value, amount of crypto i have on each total and their value, make sure you get that data from the images, also created At date should be: ${new Date().toISOString()}
 
 Give data in this format 
@@ -97,7 +97,7 @@ Give data in this format
     }
   ],
   "createdAt": "2025-03-24 12:27:14"
-}`
+}`,
           },
           {
             role: "user",
@@ -115,7 +115,7 @@ Give data in this format
             ],
           },
         ],
-        max_tokens: 1000,
+        // max_tokens: 1000,
       }),
     });
 
