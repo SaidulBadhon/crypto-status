@@ -1,5 +1,4 @@
 "use client";
-
 import { useEffect, useState } from "react";
 import { deletePortfolioEntry, getPortfolioEntryById } from "@/lib/api";
 import {
@@ -28,7 +27,6 @@ export default function PortfolioDetail() {
   const { id } = useParams<any>();
   const router = useRouter();
 
-  const [portfolio, setPortfolio] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isDeleting, setIsDeleting] = useState(false);
   const [portfolioItem, setPortfolioItem] = useState<any>(null);
@@ -53,19 +51,6 @@ export default function PortfolioDetail() {
   useEffect(() => {
     fetchPortfolio();
   }, []);
-
-  // useEffect(() => {
-  //   if (portfolio.length > 0 && id) {
-  //     const item = portfolio.find((item) => item._id === id);
-
-  //     if (item) {
-  //       setPortfolioItem(item);
-  //     } else {
-  //       // If item not found, navigate back to portfolio list
-  //       router.push("/portfolio");
-  //     }
-  //   }
-  // }, [portfolio, id]);
 
   if (isLoading) {
     return (
