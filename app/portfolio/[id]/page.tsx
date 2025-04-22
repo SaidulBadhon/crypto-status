@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { getPortfolioEntries, deletePortfolioEntry } from "@/lib/api";
+import { deletePortfolioEntry, getPortfolioEntryById } from "@/lib/api";
 import {
   Card,
   CardContent,
@@ -22,7 +22,7 @@ import {
 import Image from "@/components/image";
 import moment from "moment";
 import { ArrowLeft, Trash2, AlertTriangle, Loader2 } from "lucide-react";
-import { redirect, useParams, useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 
 export default function PortfolioDetail() {
   const { id } = useParams<any>();
@@ -38,8 +38,11 @@ export default function PortfolioDetail() {
     setIsLoading(true);
 
     try {
-      const data = await getPortfolioEntries();
-      setPortfolio(data);
+      const data = await getPortfolioEntryById(id as string);
+
+      console.log("PortfolioDetail", data);
+
+      setPortfolioItem(data);
     } catch (error) {
       console.error("Error fetching portfolio data:", error);
     } finally {
@@ -51,17 +54,18 @@ export default function PortfolioDetail() {
     fetchPortfolio();
   }, []);
 
-  useEffect(() => {
-    if (portfolio.length > 0 && id) {
-      const item = portfolio.find((item) => item.createdAt === id);
-      if (item) {
-        setPortfolioItem(item);
-      } else {
-        // If item not found, navigate back to portfolio list
-        redirect("/portfolio");
-      }
-    }
-  }, [portfolio, id]);
+  // useEffect(() => {
+  //   if (portfolio.length > 0 && id) {
+  //     const item = portfolio.find((item) => item._id === id);
+
+  //     if (item) {
+  //       setPortfolioItem(item);
+  //     } else {
+  //       // If item not found, navigate back to portfolio list
+  //       router.push("/portfolio");
+  //     }
+  //   }
+  // }, [portfolio, id]);
 
   if (isLoading) {
     return (

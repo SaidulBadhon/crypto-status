@@ -166,11 +166,13 @@ export default function Portfolio() {
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          {sortedPortfolio.map((item) => (
-            <Link key={item.createdAt} href={`/portfolio/${item.createdAt}`}>
-              <ItemCard item={item} />
-            </Link>
-          ))}
+          {sortedPortfolio.map((item) => {
+            return (
+              <Link key={item.createdAt} href={`/portfolio/${item._id}`}>
+                <ItemCard item={item} />
+              </Link>
+            );
+          })}
         </div>
       )}
     </div>

@@ -9,6 +9,7 @@ export interface PortfolioItem {
   createdAt: string;
   total: string;
   crypto: CryptoItem[];
+  _id?: string;
 }
 
 export interface ChartDataPoint {
