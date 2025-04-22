@@ -2,11 +2,13 @@ import { PortfolioItem, CryptoItem } from "@/types";
 
 /**
  * Analyzes an image using OpenAI's Vision API to extract crypto portfolio data
- * 
+ *
  * @param imageBase64 Base64 encoded image data
  * @returns Extracted portfolio data
  */
-export async function analyzeImageWithOpenAI(imageBase64: string): Promise<PortfolioItem> {
+export async function analyzeImageWithOpenAI(
+  imageBase64: string
+): Promise<PortfolioItem> {
   try {
     // Check if OpenAI API key is configured
     if (!process.env.OPENAI_API_KEY) {
@@ -18,38 +20,41 @@ export async function analyzeImageWithOpenAI(imageBase64: string): Promise<Portf
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`
+        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
       },
       body: JSON.stringify({
-        model: "gpt-4-vision-preview",
+        model: "gpt-4.1-mini",
         messages: [
           {
             role: "system",
-            content: "You are a specialized assistant that extracts cryptocurrency portfolio data from images. Extract all cryptocurrency names, amounts, prices, and values in USDT. Format the response as a valid JSON object."
+            content:
+              "You are a specialized assistant that extracts cryptocurrency portfolio data from images. Extract all cryptocurrency names, amounts, prices, and values in USDT. Format the response as a valid JSON object.",
           },
           {
             role: "user",
             content: [
               {
                 type: "text",
-                text: "Extract the cryptocurrency portfolio data from this image. Return ONLY a valid JSON object with the following structure: { \"createdAt\": \"ISO date string\", \"total\": \"$X,XXX.XX\", \"crypto\": [ { \"name\": \"SYMBOL\", \"amount\": \"X.XX\", \"amountInUsdt\": \"X,XXX\", \"parPrice\": \"$X,XXX\" }, ... ] }"
+                text: 'Extract the cryptocurrency portfolio data from this image. Return ONLY a valid JSON object with the following structure: { "createdAt": "ISO date string", "total": "$X,XXX.XX", "crypto": [ { "name": "SYMBOL", "amount": "X.XX", "amountInUsdt": "X,XXX", "parPrice": "$X,XXX" }, ... ] }',
               },
               {
                 type: "image_url",
                 image_url: {
-                  url: `data:image/jpeg;base64,${imageBase64}`
-                }
-              }
-            ]
-          }
+                  url: `data:image/jpeg;base64,${imageBase64}`,
+                },
+              },
+            ],
+          },
         ],
-        max_tokens: 1000
-      })
+        max_tokens: 1000,
+      }),
     });
 
     if (!response.ok) {
       const errorData = await response.json();
-      throw new Error(`OpenAI API error: ${errorData.error?.message || response.statusText}`);
+      throw new Error(
+        `OpenAI API error: ${errorData.error?.message || response.statusText}`
+      );
     }
 
     const data = await response.json();
@@ -61,10 +66,13 @@ export async function analyzeImageWithOpenAI(imageBase64: string): Promise<Portf
 
     // Extract JSON from the response
     // The response might contain markdown or other text, so we need to extract just the JSON part
-    const jsonMatch = content.match(/```json\n([\s\S]*?)\n```/) || content.match(/```([\s\S]*?)```/) || content.match(/{[\s\S]*?}/);
-    
+    const jsonMatch =
+      content.match(/```json\n([\s\S]*?)\n```/) ||
+      content.match(/```([\s\S]*?)```/) ||
+      content.match(/{[\s\S]*?}/);
+
     let portfolioData: PortfolioItem;
-    
+
     if (jsonMatch) {
       try {
         // Try to parse the extracted JSON
@@ -85,14 +93,19 @@ export async function analyzeImageWithOpenAI(imageBase64: string): Promise<Portf
 
     if (!portfolioData.total) {
       // Calculate total from crypto items if not provided
-      const total = portfolioData.crypto.reduce((sum: number, crypto: CryptoItem) => {
-        const amountInUsdt = parseFloat(crypto.amountInUsdt.replace(/,/g, ''));
-        return sum + (isNaN(amountInUsdt) ? 0 : amountInUsdt);
-      }, 0);
-      
-      portfolioData.total = `$${total.toLocaleString('en-US', {
+      const total = portfolioData.crypto.reduce(
+        (sum: number, crypto: CryptoItem) => {
+          const amountInUsdt = parseFloat(
+            crypto.amountInUsdt.replace(/,/g, "")
+          );
+          return sum + (isNaN(amountInUsdt) ? 0 : amountInUsdt);
+        },
+        0
+      );
+
+      portfolioData.total = `$${total.toLocaleString("en-US", {
         minimumFractionDigits: 2,
-        maximumFractionDigits: 2
+        maximumFractionDigits: 2,
       })}`;
     }
 
@@ -105,13 +118,17 @@ export async function analyzeImageWithOpenAI(imageBase64: string): Promise<Portf
 
 /**
  * Analyzes multiple images using OpenAI's Vision API
- * 
+ *
  * @param imagesBase64 Array of base64 encoded image data
  * @returns Array of extracted portfolio items
  */
-export async function analyzeMultipleImagesWithOpenAI(imagesBase64: string[]): Promise<PortfolioItem[]> {
+export async function analyzeMultipleImagesWithOpenAI(
+  imagesBase64: string[]
+): Promise<PortfolioItem[]> {
   try {
-    const promises = imagesBase64.map(imageBase64 => analyzeImageWithOpenAI(imageBase64));
+    const promises = imagesBase64.map((imageBase64) =>
+      analyzeImageWithOpenAI(imageBase64)
+    );
     return Promise.all(promises);
   } catch (error) {
     console.error("Error analyzing multiple images with OpenAI:", error);
