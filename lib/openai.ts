@@ -27,8 +27,77 @@ export async function analyzeImageWithOpenAI(
         messages: [
           {
             role: "system",
-            content:
-              "You are a specialized assistant that extracts cryptocurrency portfolio data from images. Extract all cryptocurrency names, amounts, prices, and values in USDT. Format the response as a valid JSON object.",
+            "You are a specialized assistant that extracts cryptocurrency portfolio data from images. Extract all cryptocurrency names, amounts, prices, and values in USDT. Format the response as a valid JSON object.",
+            content: `Please return current value, amount of crypto i have on each total and their value, make sure you get that data from the images, also created At date should be: ${new Date().toISOString()}
+
+Give data in this format 
+
+{
+  "total": "1,812.87 USDT",
+  "crypto": [
+    {
+      "name": "BTC",
+      "amount": "0.01144002",
+      "amountInUsdt": "1000.85",
+      "parPrice": "87,505.74 USDT"
+    },
+    {
+      "name": "NEAR",
+      "amount": "152.38779806",
+      "amountInUsdt": "446.19",
+      "parPrice": "2.929 USDT"
+    },
+    {
+      "name": "ETH",
+      "amount": "0.09609376",
+      "amountInUsdt": "200.74",
+      "parPrice": "2,089.64 USDT"
+    },
+    {
+      "name": "USDT",
+      "amount": "164.14881995",
+      "amountInUsdt": "164.15",
+      "parPrice": "1.0000 USDT"
+    },
+    {
+      "name": "USDC",
+      "amount": "0.66712586",
+      "amountInUsdt": "0.66699243",
+      "parPrice": "1.0000 USDT"
+    },
+    {
+      "name": "BNB",
+      "amount": "0.00015013",
+      "amountInUsdt": "0.09442214",
+      "parPrice": "629.02 USDT"
+    },
+    {
+      "name": "HMSTR",
+      "amount": "6.11",
+      "amountInUsdt": "0.01256827",
+      "parPrice": "0.002059 USDT"
+    },
+    {
+      "name": "CGPT",
+      "amount": "0.0500386",
+      "amountInUsdt": "0.00522903",
+      "parPrice": "0.1045 USDT"
+    },
+    {
+      "name": "SHELL",
+      "amount": "0.00146155",
+      "amountInUsdt": "0.00041566",
+      "parPrice": "0.2847 USDT"
+    },
+    {
+      "name": "DOGS",
+      "amount": "0.02",
+      "amountInUsdt": "0.00000323",
+      "parPrice": "0.001618 USDT"
+    }
+  ],
+  "createdAt": "2025-03-24 12:27:14"
+}`
           },
           {
             role: "user",
