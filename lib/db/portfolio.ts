@@ -34,9 +34,7 @@ export async function getAllPortfolioEntries(): Promise<PortfolioItem[]> {
  * @param portfolioItem The portfolio item to add
  * @returns The added portfolio item
  */
-export async function addPortfolioEntry(
-  portfolioItem: PortfolioItem
-): Promise<PortfolioItem> {
+export async function addPortfolioEntry(portfolioItem: any): Promise<any> {
   try {
     const client = await clientPromise;
     const db = client.db(DB_NAME);
