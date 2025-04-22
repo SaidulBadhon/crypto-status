@@ -114,7 +114,7 @@ export default function MainLayout({
               className="text-xl font-bold flex items-center gap-2"
             >
               <Wallet className="h-6 w-6 text-primary" />
-              <span>Badhon's Portfolio</span>
+              <span>Badhon&apos;s Portfolio</span>
             </Link>
           </div>
 
