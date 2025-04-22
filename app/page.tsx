@@ -293,7 +293,7 @@ export default function Dashboard() {
       )}
 
       {/* Quick Actions */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card>
           <CardHeader>
             <CardTitle>Portfolio Details</CardTitle>
@@ -326,6 +326,24 @@ export default function Dashboard() {
               className="inline-flex items-center gap-1 text-primary hover:underline"
             >
               Add Entry <ArrowUpRight className="h-4 w-4" />
+            </Link>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Track Transactions</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="mb-4">
+              Record and track your cryptocurrency buy and sell transactions to
+              calculate profit and loss.
+            </p>
+            <Link
+              href="/transactions"
+              className="inline-flex items-center gap-1 text-primary hover:underline"
+            >
+              View Transactions <ArrowUpRight className="h-4 w-4" />
             </Link>
           </CardContent>
         </Card>

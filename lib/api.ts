@@ -1,4 +1,4 @@
-import { PortfolioItem } from "@/types";
+import { PortfolioItem, Transaction } from "@/types";
 
 /**
  * Fetches all portfolio entries from the API
@@ -198,6 +198,155 @@ export const importPortfolioData = async (
     return await res.json();
   } catch (error) {
     console.error("Error importing portfolio data:", error);
+    throw error;
+  }
+};
+
+/**
+ * Fetches all transactions from the API
+ * @param {string} [coin] - Optional coin filter
+ * @returns {Promise<Transaction[]>} Transaction data
+ */
+export const getTransactions = async (
+  coin?: string
+): Promise<Transaction[]> => {
+  try {
+    const url = new URL("/api/transactions", window.location.origin);
+    if (coin) {
+      url.searchParams.append("coin", coin);
+    }
+
+    const res = await fetch(url.toString(), {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      cache: "no-store",
+    });
+
+    if (!res.ok) {
+      throw new Error(`Failed to fetch: ${res.status} ${res.statusText}`);
+    }
+
+    return await res.json();
+  } catch (error) {
+    console.error("Error fetching transactions:", error);
+    throw error;
+  }
+};
+
+/**
+ * Adds a new transaction
+ * @param {Transaction} transaction - Transaction to add
+ * @returns {Promise<Transaction>} Added transaction
+ */
+export const addTransaction = async (
+  transaction: Transaction
+): Promise<Transaction> => {
+  try {
+    const res = await fetch("/api/transactions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(transaction),
+    });
+
+    if (!res.ok) {
+      const errorData = await res.json();
+      throw new Error(
+        errorData.error ||
+          `Failed to add transaction: ${res.status} ${res.statusText}`
+      );
+    }
+
+    return await res.json();
+  } catch (error) {
+    console.error("Error adding transaction:", error);
+    throw error;
+  }
+};
+
+/**
+ * Updates an existing transaction
+ * @param {string} id - ID of the transaction to update
+ * @param {Partial<Transaction>} transaction - Updated transaction data
+ * @returns {Promise<Transaction>} Updated transaction
+ */
+export const updateTransaction = async (
+  id: string,
+  transaction: Partial<Transaction>
+): Promise<Transaction> => {
+  try {
+    const res = await fetch(`/api/transactions/${id}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(transaction),
+    });
+
+    if (!res.ok) {
+      throw new Error(
+        `Failed to update transaction: ${res.status} ${res.statusText}`
+      );
+    }
+
+    return await res.json();
+  } catch (error) {
+    console.error("Error updating transaction:", error);
+    throw error;
+  }
+};
+
+/**
+ * Deletes a transaction
+ * @param {string} id - ID of the transaction to delete
+ * @returns {Promise<boolean>} True if the transaction was deleted
+ */
+export const deleteTransaction = async (id: string): Promise<boolean> => {
+  try {
+    const res = await fetch(`/api/transactions/${id}`, {
+      method: "DELETE",
+    });
+
+    if (!res.ok) {
+      throw new Error(
+        `Failed to delete transaction: ${res.status} ${res.statusText}`
+      );
+    }
+
+    const result = await res.json();
+    return result.success;
+  } catch (error) {
+    console.error("Error deleting transaction:", error);
+    throw error;
+  }
+};
+
+/**
+ * Gets a transaction by ID
+ * @param {string} id - ID of the transaction to get
+ * @returns {Promise<Transaction>} Transaction
+ */
+export const getTransactionById = async (id: string): Promise<Transaction> => {
+  try {
+    const res = await fetch(`/api/transactions/${id}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (!res.ok) {
+      throw new Error(
+        `Failed to fetch transaction: ${res.status} ${res.statusText}`
+      );
+    }
+
+    return await res.json();
+  } catch (error) {
+    console.error("Error fetching transaction:", error);
     throw error;
   }
 };

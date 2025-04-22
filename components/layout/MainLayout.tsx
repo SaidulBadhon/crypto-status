@@ -10,6 +10,7 @@ import {
   PlusCircle,
   Settings,
   Database,
+  ArrowUpDown,
 } from "lucide-react";
 import Link from "next/link";
 import { useState, useEffect, useCallback } from "react";
@@ -89,6 +90,11 @@ export default function MainLayout({
       path: "/portfolio",
       label: "Portfolio",
       icon: <Wallet className="h-4 w-4" />,
+    },
+    {
+      path: "/transactions",
+      label: "Transactions",
+      icon: <ArrowUpDown className="h-4 w-4" />,
     },
     {
       path: "/add",
