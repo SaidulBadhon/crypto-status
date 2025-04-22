@@ -149,8 +149,8 @@ export async function getPortfolioEntryById(
  * @returns Array of added portfolio items
  */
 export async function addMultiplePortfolioEntries(
-  portfolioItems: PortfolioItem[]
-): Promise<PortfolioItem[]> {
+  portfolioItems: any[]
+): Promise<any[]> {
   try {
     const client = await clientPromise;
     const db = client.db(DB_NAME);
@@ -192,7 +192,7 @@ export async function addMultiplePortfolioEntries(
  * @returns Number of imported items
  */
 export async function importPortfolioEntries(
-  portfolioItems: PortfolioItem[]
+  portfolioItems: any[]
 ): Promise<number> {
   try {
     const client = await clientPromise;
