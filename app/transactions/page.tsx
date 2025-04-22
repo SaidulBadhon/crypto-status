@@ -18,8 +18,10 @@ import {
   DollarSign,
   Filter,
   X,
+  Trash2,
+  AlertCircle,
 } from "lucide-react";
-import { getTransactions } from "@/lib/api";
+import { getTransactions, deleteTransaction } from "@/lib/api";
 import { Transaction, TransactionStats, TransactionType } from "@/types";
 import Link from "next/link";
 import moment from "moment";
@@ -27,6 +29,10 @@ import moment from "moment";
 export default function TransactionsPage() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
   const [stats, setStats] = useState<TransactionStats>({
     totalBuyValue: 0,
     totalSellValue: 0,
@@ -72,17 +78,11 @@ export default function TransactionsPage() {
 
     const totalBuyValue = transactionData
       .filter((t) => t.type === "buy")
-      .reduce(
-        (sum, t) => sum + parseFloat(t.totalValue.replace(/,/g, "")),
-        0
-      );
+      .reduce((sum, t) => sum + parseFloat(t.totalValue.replace(/,/g, "")), 0);
 
     const totalSellValue = transactionData
       .filter((t) => t.type === "sell")
-      .reduce(
-        (sum, t) => sum + parseFloat(t.totalValue.replace(/,/g, "")),
-        0
-      );
+      .reduce((sum, t) => sum + parseFloat(t.totalValue.replace(/,/g, "")), 0);
 
     const totalFees = transactionData.reduce(
       (sum, t) => sum + parseFloat(t.fee.replace(/,/g, "")),
@@ -192,8 +192,51 @@ export default function TransactionsPage() {
           <td className="px-4 py-3 border-b">
             <div className="h-4 bg-muted rounded w-12"></div>
           </td>
+          <td className="px-4 py-3 border-b">
+            <div className="h-4 bg-muted rounded w-8"></div>
+          </td>
         </tr>
       ));
+  };
+
+  // Handle delete confirmation
+  const confirmDelete = (id: string) => {
+    setDeleteId(id);
+    setShowDeleteConfirm(true);
+    setDeleteError(null);
+  };
+
+  // Handle delete cancellation
+  const cancelDelete = () => {
+    setDeleteId(null);
+    setShowDeleteConfirm(false);
+  };
+
+  // Handle delete transaction
+  const handleDeleteTransaction = async () => {
+    if (!deleteId) return;
+
+    setIsDeleting(true);
+    setDeleteError(null);
+
+    try {
+      const success = await deleteTransaction(deleteId);
+      if (success) {
+        // Remove the deleted transaction from state
+        setTransactions(transactions.filter((t) => t._id !== deleteId));
+        // Recalculate stats
+        calculateStats(transactions.filter((t) => t._id !== deleteId));
+        // Close the confirmation dialog
+        setShowDeleteConfirm(false);
+        setDeleteId(null);
+      } else {
+        setDeleteError("Failed to delete transaction");
+      }
+    } catch (error: any) {
+      setDeleteError(error.message || "Failed to delete transaction");
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   // Format currency
@@ -219,7 +262,9 @@ export default function TransactionsPage() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Total Buy Value</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Total Buy Value
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
@@ -233,7 +278,9 @@ export default function TransactionsPage() {
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Total Sell Value</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Total Sell Value
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
@@ -279,9 +326,7 @@ export default function TransactionsPage() {
               {stats.trend !== "neutral" && (
                 <div
                   className={`flex items-center text-xs ${
-                    stats.trend === "profit"
-                      ? "text-green-500"
-                      : "text-red-500"
+                    stats.trend === "profit" ? "text-green-500" : "text-red-500"
                   }`}
                 >
                   {stats.trend === "profit" ? (
@@ -446,6 +491,9 @@ export default function TransactionsPage() {
                       )}
                     </div>
                   </th>
+                  <th className="px-4 py-2 text-left font-medium text-muted-foreground">
+                    Actions
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -454,7 +502,7 @@ export default function TransactionsPage() {
                 ) : sortedTransactions.length === 0 ? (
                   <tr>
                     <td
-                      colSpan={7}
+                      colSpan={8}
                       className="px-4 py-8 text-center text-muted-foreground"
                     >
                       No transactions found. Add your first transaction to get
@@ -494,6 +542,15 @@ export default function TransactionsPage() {
                         ${transaction.totalValue}
                       </td>
                       <td className="px-4 py-3 border-b">${transaction.fee}</td>
+                      <td className="px-4 py-3 border-b">
+                        <button
+                          onClick={() => confirmDelete(transaction._id!)}
+                          className="p-1 text-red-500 hover:text-red-700 transition-colors rounded-full hover:bg-red-100 dark:hover:bg-red-900/30"
+                          title="Delete transaction"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </td>
                     </tr>
                   ))
                 )}
@@ -502,6 +559,58 @@ export default function TransactionsPage() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Delete Confirmation Dialog */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-background p-6 rounded-lg shadow-lg max-w-md w-full">
+            <div className="flex flex-col gap-4">
+              <div className="flex items-center gap-3 text-red-500">
+                <AlertCircle className="h-6 w-6" />
+                <h3 className="text-lg font-semibold">Confirm Deletion</h3>
+              </div>
+
+              <p className="text-muted-foreground">
+                Are you sure you want to delete this transaction? This action
+                cannot be undone.
+              </p>
+
+              {deleteError && (
+                <div className="p-3 bg-red-100 border border-red-200 text-red-800 rounded-md">
+                  {deleteError}
+                </div>
+              )}
+
+              <div className="flex justify-end gap-2 mt-2">
+                <button
+                  onClick={cancelDelete}
+                  className="px-4 py-2 border border-input bg-background hover:bg-accent transition-colors rounded-md"
+                  disabled={isDeleting}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleDeleteTransaction}
+                  className="px-4 py-2 bg-red-500 text-white hover:bg-red-600 transition-colors rounded-md flex items-center gap-2"
+                  disabled={isDeleting}
+                >
+                  {isDeleting ? (
+                    <>
+                      <RefreshCw className="h-4 w-4 animate-spin" />
+                      Deleting...
+                    </>
+                  ) : (
+                    <>
+                      <Trash2 className="h-4 w-4" />
+                      Delete
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
