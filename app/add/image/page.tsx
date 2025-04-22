@@ -11,7 +11,10 @@ import {
   CardFooter,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { analyzeImagesWithOpenAI, addMultiplePortfolioEntries } from "@/lib/api";
+import {
+  analyzeImagesWithOpenAI,
+  addMultiplePortfolioEntries,
+} from "@/lib/api";
 import { PortfolioItem } from "@/types";
 import {
   AlertCircle,
@@ -24,31 +27,32 @@ import {
   Check,
   X,
 } from "lucide-react";
-import Link from "next/link";
 
 export default function ImageUploadPage() {
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
-  
+
   const [selectedImages, setSelectedImages] = useState<File[]>([]);
   const [previewUrls, setPreviewUrls] = useState<string[]>([]);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
-  const [analyzedData, setAnalyzedData] = useState<PortfolioItem[] | null>(null);
+  const [analyzedData, setAnalyzedData] = useState<PortfolioItem[] | null>(
+    null
+  );
   const [jsonPreview, setJsonPreview] = useState<string>("");
 
   // Handle file selection
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
       const newFiles = Array.from(e.target.files);
-      
+
       // Create preview URLs for the selected images
-      const newPreviewUrls = newFiles.map(file => URL.createObjectURL(file));
-      
-      setSelectedImages(prev => [...prev, ...newFiles]);
-      setPreviewUrls(prev => [...prev, ...newPreviewUrls]);
+      const newPreviewUrls = newFiles.map((file) => URL.createObjectURL(file));
+
+      setSelectedImages((prev) => [...prev, ...newFiles]);
+      setPreviewUrls((prev) => [...prev, ...newPreviewUrls]);
       setError(null);
       setSuccess(null);
       setAnalyzedData(null);
@@ -60,10 +64,10 @@ export default function ImageUploadPage() {
   const handleRemoveImage = (index: number) => {
     // Revoke the object URL to avoid memory leaks
     URL.revokeObjectURL(previewUrls[index]);
-    
-    setSelectedImages(prev => prev.filter((_, i) => i !== index));
-    setPreviewUrls(prev => prev.filter((_, i) => i !== index));
-    
+
+    setSelectedImages((prev) => prev.filter((_, i) => i !== index));
+    setPreviewUrls((prev) => prev.filter((_, i) => i !== index));
+
     if (selectedImages.length === 1) {
       setAnalyzedData(null);
       setJsonPreview("");
@@ -93,13 +97,13 @@ export default function ImageUploadPage() {
     try {
       // Create form data with the selected images
       const formData = new FormData();
-      selectedImages.forEach(image => {
+      selectedImages.forEach((image) => {
         formData.append("images", image);
       });
 
       // Call the API to analyze the images
       const result = await analyzeImagesWithOpenAI(formData);
-      
+
       if (result.success && result.portfolioItems) {
         setAnalyzedData(result.portfolioItems);
         setJsonPreview(JSON.stringify(result.portfolioItems, null, 2));
@@ -128,10 +132,10 @@ export default function ImageUploadPage() {
     try {
       // Save the analyzed data to the database
       const result = await addMultiplePortfolioEntries(analyzedData);
-      
+
       if (result.success) {
         setSuccess(`Successfully saved ${result.count} portfolio entries`);
-        
+
         // Clear the form after successful save
         setTimeout(() => {
           router.push("/portfolio");
@@ -141,7 +145,9 @@ export default function ImageUploadPage() {
       }
     } catch (err) {
       console.error("Error saving portfolio entries:", err);
-      setError(err instanceof Error ? err.message : "Failed to save portfolio entries");
+      setError(
+        err instanceof Error ? err.message : "Failed to save portfolio entries"
+      );
     } finally {
       setIsSaving(false);
     }
@@ -321,7 +327,9 @@ export default function ImageUploadPage() {
             <div>
               <h3 className="font-medium">Supported Image Types</h3>
               <p className="text-sm text-muted-foreground">
-                Upload clear images of your crypto portfolio data. The system works best with screenshots from exchanges or portfolio tracking apps.
+                Upload clear images of your crypto portfolio data. The system
+                works best with screenshots from exchanges or portfolio tracking
+                apps.
               </p>
             </div>
             <div>
@@ -339,9 +347,7 @@ export default function ImageUploadPage() {
             </div>
             <div>
               <h3 className="font-medium">Best Practices</h3>
-              <p className="text-sm text-muted-foreground">
-                For best results:
-              </p>
+              <p className="text-sm text-muted-foreground">For best results:</p>
               <ul className="list-disc list-inside text-sm text-muted-foreground mt-2 ml-4">
                 <li>Use high-resolution images</li>
                 <li>Ensure text is clearly visible</li>

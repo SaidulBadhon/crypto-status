@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { analyzeImageWithOpenAI, analyzeMultipleImagesWithOpenAI } from "@/lib/openai";
-import { PortfolioItem } from "@/types";
+import { analyzeMultipleImagesWithOpenAI } from "@/lib/openai";
 
 /**
  * POST /api/image-analysis
@@ -28,16 +27,9 @@ export async function POST(request: NextRequest) {
     );
 
     // Analyze images with OpenAI
-    let portfolioItems: PortfolioItem[];
-    
-    if (imagesBase64.length === 1) {
-      // If only one image, analyze it directly
-      const portfolioItem = await analyzeImageWithOpenAI(imagesBase64[0]);
-      portfolioItems = [portfolioItem];
-    } else {
-      // If multiple images, analyze them in parallel
-      portfolioItems = await analyzeMultipleImagesWithOpenAI(imagesBase64);
-    }
+    // Always use the multiple images function, which now handles both single and multiple images
+    // and analyzes all images together in a single API call when multiple images are provided
+    const portfolioItems = await analyzeMultipleImagesWithOpenAI(imagesBase64);
 
     return NextResponse.json({
       success: true,
@@ -46,9 +38,9 @@ export async function POST(request: NextRequest) {
   } catch (error: any) {
     console.error("Error in POST /api/image-analysis:", error);
     return NextResponse.json(
-      { 
+      {
         error: "Failed to analyze images",
-        message: error.message 
+        message: error.message,
       },
       { status: 500 }
     );
