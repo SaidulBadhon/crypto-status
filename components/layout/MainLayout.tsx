@@ -101,16 +101,6 @@ export default function MainLayout({
       label: "Add Entry",
       icon: <PlusCircle className="h-4 w-4" />,
     },
-    {
-      path: "/migrate",
-      label: "Migrate",
-      icon: <Database className="h-4 w-4" />,
-    },
-    {
-      path: "/settings",
-      label: "Settings",
-      icon: <Settings className="h-4 w-4" />,
-    },
   ];
 
   return (
@@ -124,7 +114,7 @@ export default function MainLayout({
               className="text-xl font-bold flex items-center gap-2"
             >
               <Wallet className="h-6 w-6 text-primary" />
-              <span>Crypto Portfolio</span>
+              <span>Badhon's Portfolio</span>
             </Link>
           </div>
 
