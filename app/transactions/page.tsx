@@ -249,7 +249,9 @@ export default function TransactionsPage() {
             className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
               transaction.type === "buy"
                 ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300"
-                : "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300"
+                : transaction.type === "sell"
+                ? "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300"
+                : "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300"
             }`}
           >
             {transaction.type.toUpperCase()}
@@ -357,7 +359,7 @@ export default function TransactionsPage() {
       <div className="flex flex-col gap-2">
         <h1 className="text-3xl font-bold">Transactions</h1>
         <p className="text-muted-foreground">
-          Track your cryptocurrency buy and sell transactions
+          Track your cryptocurrency buy, sell, and transfer transactions
         </p>
       </div>
 
@@ -516,7 +518,7 @@ export default function TransactionsPage() {
         <CardHeader>
           <CardTitle>Transaction History</CardTitle>
           <CardDescription>
-            Your cryptocurrency buy and sell transactions
+            Your cryptocurrency buy, sell, and transfer transactions
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -631,7 +633,9 @@ export default function TransactionsPage() {
                           className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
                             transaction.type === "buy"
                               ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300"
-                              : "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300"
+                              : transaction.type === "sell"
+                              ? "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300"
+                              : "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300"
                           }`}
                         >
                           {transaction.type.toUpperCase()}

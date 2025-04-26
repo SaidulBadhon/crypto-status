@@ -361,14 +361,14 @@ export async function analyzeTransactionImageWithOpenAI(
         messages: [
           {
             role: "system",
-            content: `You are a specialized assistant that extracts cryptocurrency transaction data from images. Extract transaction type (buy/sell), date, coin symbol, amount, price per coin, total value, and any fees. The date should be in ISO format.`,
+            content: `You are a specialized assistant that extracts cryptocurrency transaction data from images. Extract transaction type (buy/sell/transfer), date, coin symbol, amount, price per coin, total value, and any fees. The date should be in ISO format.`,
           },
           {
             role: "user",
             content: [
               {
                 type: "text",
-                text: 'Extract the cryptocurrency transaction data from this image. Return ONLY a valid JSON object with the following structure: { "type": "buy" or "sell", "date": "ISO date string", "coin": "SYMBOL", "amount": "X.XX", "pricePerCoin": "X.XX", "totalValue": "X.XX", "fee": "X.XX", "notes": "Any additional information" }',
+                text: 'Extract the cryptocurrency transaction data from this image. Return ONLY a valid JSON object with the following structure: { "type": "buy" or "sell" or "transfer", "date": "ISO date string", "coin": "SYMBOL", "amount": "X.XX", "pricePerCoin": "X.XX", "totalValue": "X.XX", "fee": "X.XX", "notes": "Any additional information" }',
               },
               {
                 type: "image_url",
@@ -426,10 +426,12 @@ export async function analyzeTransactionImageWithOpenAI(
       transactionData.date = new Date(transactionData.date).toISOString();
     }
 
-    // Ensure type is either 'buy' or 'sell'
+    // Ensure type is either 'buy', 'sell', or 'transfer'
     if (
       !transactionData.type ||
-      (transactionData.type !== "buy" && transactionData.type !== "sell")
+      (transactionData.type !== "buy" &&
+        transactionData.type !== "sell" &&
+        transactionData.type !== "transfer")
     ) {
       transactionData.type = "buy"; // Default to buy if not specified or invalid
     }

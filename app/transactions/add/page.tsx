@@ -155,6 +155,7 @@ export default function AddTransactionPage() {
                     >
                       <option value="buy">Buy</option>
                       <option value="sell">Sell</option>
+                      <option value="transfer">Transfer</option>
                     </select>
                   </div>
 
@@ -327,6 +328,9 @@ export default function AddTransactionPage() {
                   <br />
                   <strong>Sell:</strong> When you sell cryptocurrency for fiat
                   or another crypto.
+                  <br />
+                  <strong>Transfer:</strong> When you move cryptocurrency
+                  between wallets or exchanges without buying or selling.
                 </p>
               </div>
 

@@ -25,7 +25,7 @@ export interface PortfolioStats {
   trend: "up" | "down" | "neutral";
 }
 
-export type TransactionType = "buy" | "sell";
+export type TransactionType = "buy" | "sell" | "transfer";
 
 export interface Transaction {
   _id?: string;
