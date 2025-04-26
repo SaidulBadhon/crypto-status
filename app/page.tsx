@@ -64,7 +64,7 @@ export default function Dashboard() {
         };
       });
 
-      setSelectedData(data);
+      setSelectedData(data?.reverse() || data || []);
 
       // Calculate stats if we have enough data
       if (data.length >= 2) {

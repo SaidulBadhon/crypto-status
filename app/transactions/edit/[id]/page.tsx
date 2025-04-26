@@ -14,7 +14,13 @@ import Link from "next/link";
 import { Transaction, TransactionType } from "@/types";
 import { getTransactionById, updateTransaction } from "@/lib/api";
 
-export default function EditTransactionPage({ params }: { params: { id: string } }) {
+export default async function Page({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id } = await params;
+
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -43,13 +49,13 @@ export default function EditTransactionPage({ params }: { params: { id: string }
   useEffect(() => {
     const fetchTransaction = async () => {
       try {
-        const transaction = await getTransactionById(params.id);
-        
+        const transaction = await getTransactionById(id);
+
         // Format the date for the datetime-local input (YYYY-MM-DDTHH:MM)
         const formattedDate = new Date(transaction.date)
           .toISOString()
           .slice(0, 16);
-        
+
         setFormData({
           type: transaction.type,
           date: formattedDate,
@@ -60,7 +66,7 @@ export default function EditTransactionPage({ params }: { params: { id: string }
           fee: transaction.fee,
           notes: transaction.notes || "",
         });
-        
+
         setIsLoading(false);
       } catch (err) {
         console.error("Failed to fetch transaction:", err);
@@ -70,7 +76,7 @@ export default function EditTransactionPage({ params }: { params: { id: string }
     };
 
     fetchTransaction();
-  }, [params.id]);
+  }, [id]);
 
   // Handle form input changes
   const handleInputChange = (
@@ -125,7 +131,7 @@ export default function EditTransactionPage({ params }: { params: { id: string }
       };
 
       // Update transaction
-      await updateTransaction(params.id, transaction);
+      await updateTransaction(id, transaction);
 
       // Redirect to transactions page
       router.push("/transactions");
