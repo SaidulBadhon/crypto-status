@@ -21,6 +21,7 @@ import {
   Trash2,
   AlertCircle,
   Image as ImageIcon,
+  Edit,
 } from "lucide-react";
 import { getTransactions, deleteTransaction } from "@/lib/api";
 import { Transaction, TransactionStats, TransactionType } from "@/types";
@@ -281,7 +282,14 @@ export default function TransactionsPage() {
           </div>
         </div>
 
-        <div className="mt-4 flex justify-end">
+        <div className="mt-4 flex justify-end gap-2">
+          <Link
+            href={`/transactions/edit/${transaction._id}`}
+            className="p-2 text-blue-500 hover:text-blue-700 transition-colors rounded-full hover:bg-blue-100 dark:hover:bg-blue-900/30"
+            title="Edit transaction"
+          >
+            <Edit className="h-4 w-4" />
+          </Link>
           <button
             onClick={() => confirmDelete(transaction._id!)}
             className="p-2 text-red-500 hover:text-red-700 transition-colors rounded-full hover:bg-red-100 dark:hover:bg-red-900/30"
@@ -646,13 +654,22 @@ export default function TransactionsPage() {
                       </td>
                       <td className="px-4 py-3 border-b">${transaction.fee}</td>
                       <td className="px-4 py-3 border-b">
-                        <button
-                          onClick={() => confirmDelete(transaction._id!)}
-                          className="p-1 text-red-500 hover:text-red-700 transition-colors rounded-full hover:bg-red-100 dark:hover:bg-red-900/30"
-                          title="Delete transaction"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </button>
+                        <div className="flex gap-2">
+                          <Link
+                            href={`/transactions/edit/${transaction._id}`}
+                            className="p-1 text-blue-500 hover:text-blue-700 transition-colors rounded-full hover:bg-blue-100 dark:hover:bg-blue-900/30"
+                            title="Edit transaction"
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Link>
+                          <button
+                            onClick={() => confirmDelete(transaction._id!)}
+                            className="p-1 text-red-500 hover:text-red-700 transition-colors rounded-full hover:bg-red-100 dark:hover:bg-red-900/30"
+                            title="Delete transaction"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))
