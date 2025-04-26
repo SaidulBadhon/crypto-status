@@ -451,8 +451,8 @@ export default function TransactionsPage() {
       </div>
 
       {/* Actions and Filters */}
-      <div className="flex flex-col sm:flex-row justify-between gap-4">
-        <div className="flex gap-2">
+      <div className="flex flex-col sm:flex-row justify-between gap-4  items-center">
+        <div className="flex gap-2 flex-col-reverse max-w-[500px]   w-full md:flex-row ">
           <button
             onClick={() => fetchTransactions(filterCoin)}
             className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors flex items-center gap-2"
@@ -470,30 +470,33 @@ export default function TransactionsPage() {
               </>
             )}
           </button>
-          <Link
-            href="/transactions/add"
-            className="px-4 py-2 bg-secondary text-secondary-foreground rounded-md hover:bg-secondary/80 transition-colors flex items-center gap-2"
-          >
-            <Plus className="h-4 w-4" />
-            Add Transaction
-          </Link>
-          <Link
-            href="/transactions/add/image"
-            className="px-4 py-2 bg-secondary text-secondary-foreground rounded-md hover:bg-secondary/80 transition-colors flex items-center gap-2"
-          >
-            <ImageIcon className="h-4 w-4" />
-            Add from Image
-          </Link>
+
+          <div className="flex w-full gap-2">
+            <Link
+              href="/transactions/add"
+              className="px-4 w-full min-w-48 py-2 bg-secondary text-secondary-foreground rounded-md hover:bg-secondary/80 transition-colors flex items-center gap-2"
+            >
+              <Plus className="h-4 w-4" />
+              Add Transaction
+            </Link>
+            <Link
+              href="/transactions/add/image"
+              className="px-4 w-full py-2 bg-secondary text-secondary-foreground rounded-md hover:bg-secondary/80 transition-colors flex items-center gap-2"
+            >
+              <ImageIcon className="h-4 w-4" />
+              Add from Image
+            </Link>
+          </div>
         </div>
 
-        <div className="flex gap-2">
-          <div className="relative">
+        <div className="flex gap-2 w-full md:max-w-96">
+          <div className="relative w-full">
             <input
               type="text"
               value={filterCoin}
               onChange={handleFilterChange}
               placeholder="Filter by coin..."
-              className="px-4 py-2 pr-10 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+              className="px-4 py-2 w-full pr-10 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
             />
             {filterCoin && (
               <button
