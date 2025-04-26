@@ -1,4 +1,9 @@
-import { PortfolioItem, CryptoItem } from "@/types";
+import {
+  PortfolioItem,
+  CryptoItem,
+  Transaction,
+  TransactionType,
+} from "@/types";
 
 /**
  * Analyzes an image using OpenAI's Vision API to extract crypto portfolio data
@@ -321,9 +326,132 @@ export async function analyzeMultipleImagesWithOpenAI(
       }
 
       return item;
+    }
+
+/**
+ * Analyzes an image using OpenAI's Vision API to extract crypto transaction data
+ *
+ * @param imageBase64 Base64 encoded image data
+ * @returns Extracted transaction data
+ */
+export async function analyzeTransactionImageWithOpenAI(
+  imageBase64: string
+): Promise<Transaction> {
+  try {
+    // Check if OpenAI API key is configured
+    if (!process.env.OPENAI_API_KEY) {
+      throw new Error("OpenAI API key is not configured");
+    }
+
+    // Prepare the API request to OpenAI
+    const response = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+      },
+      body: JSON.stringify({
+        model: "gpt-4.1-mini",
+        messages: [
+          {
+            role: "system",
+            content: `You are a specialized assistant that extracts cryptocurrency transaction data from images. Extract transaction type (buy/sell), date, coin symbol, amount, price per coin, total value, and any fees. The date should be in ISO format.`,
+          },
+          {
+            role: "user",
+            content: [
+              {
+                type: "text",
+                text: 'Extract the cryptocurrency transaction data from this image. Return ONLY a valid JSON object with the following structure: { "type": "buy" or "sell", "date": "ISO date string", "coin": "SYMBOL", "amount": "X.XX", "pricePerCoin": "X.XX", "totalValue": "X.XX", "fee": "X.XX", "notes": "Any additional information" }',
+              },
+              {
+                type: "image_url",
+                image_url: {
+                  url: `data:image/jpeg;base64,${imageBase64}`,
+                },
+              },
+            ],
+          },
+        ],
+      }),
     });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(
+        `OpenAI API error: ${errorData.error?.message || response.statusText}`
+      );
+    }
+
+    const data = await response.json();
+    const content = data.choices[0]?.message?.content;
+
+    if (!content) {
+      throw new Error("No content returned from OpenAI");
+    }
+
+    // Extract JSON from the response
+    // The response might contain markdown or other text, so we need to extract just the JSON part
+    const jsonMatch =
+      content.match(/```json\n([\s\S]*?)\n```/) ||
+      content.match(/```([\s\S]*?)```/) ||
+      content.match(/{[\s\S]*?}/);
+
+    let transactionData: Transaction;
+
+    if (jsonMatch) {
+      try {
+        // Try to parse the extracted JSON
+        transactionData = JSON.parse(jsonMatch[1] || jsonMatch[0]);
+      } catch (e) {
+        // If parsing fails, try to parse the entire content
+        transactionData = JSON.parse(content);
+      }
+    } else {
+      // If no JSON-like content is found, try to parse the entire content
+      transactionData = JSON.parse(content);
+    }
+
+    // Validate and fix the transaction data
+    if (!transactionData.date) {
+      transactionData.date = new Date().toISOString();
+    } else if (!(transactionData.date as string).includes('T')) {
+      // If the date doesn't include time information, add it
+      transactionData.date = new Date(transactionData.date).toISOString();
+    }
+
+    // Ensure type is either 'buy' or 'sell'
+    if (!transactionData.type || (transactionData.type !== 'buy' && transactionData.type !== 'sell')) {
+      transactionData.type = 'buy'; // Default to buy if not specified or invalid
+    }
+
+    // Ensure coin symbol is uppercase
+    if (transactionData.coin) {
+      transactionData.coin = transactionData.coin.toUpperCase();
+    }
+
+    // Ensure numeric fields are strings (as expected by the Transaction type)
+    if (typeof transactionData.amount === 'number') {
+      transactionData.amount = transactionData.amount.toString();
+    }
+    if (typeof transactionData.pricePerCoin === 'number') {
+      transactionData.pricePerCoin = transactionData.pricePerCoin.toString();
+    }
+    if (typeof transactionData.totalValue === 'number') {
+      transactionData.totalValue = transactionData.totalValue.toString();
+    }
+    if (typeof transactionData.fee === 'number') {
+      transactionData.fee = transactionData.fee.toString();
+    }
+
+    // Set default fee if not provided
+    if (!transactionData.fee) {
+      transactionData.fee = "0";
+    }
+
+    return transactionData;
   } catch (error) {
-    console.error("Error analyzing multiple images with OpenAI:", error);
+    console.error("Error analyzing transaction image with OpenAI:", error);
     throw error;
   }
 }

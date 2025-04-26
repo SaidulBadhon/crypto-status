@@ -20,6 +20,7 @@ import {
   X,
   Trash2,
   AlertCircle,
+  Image as ImageIcon,
 } from "lucide-react";
 import { getTransactions, deleteTransaction } from "@/lib/api";
 import { Transaction, TransactionStats, TransactionType } from "@/types";
@@ -465,6 +466,13 @@ export default function TransactionsPage() {
           >
             <Plus className="h-4 w-4" />
             Add Transaction
+          </Link>
+          <Link
+            href="/transactions/add/image"
+            className="px-4 py-2 bg-secondary text-secondary-foreground rounded-md hover:bg-secondary/80 transition-colors flex items-center gap-2"
+          >
+            <ImageIcon className="h-4 w-4" />
+            Add from Image
           </Link>
         </div>
 

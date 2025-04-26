@@ -379,3 +379,32 @@ export const analyzeImagesWithOpenAI = async (
     throw error;
   }
 };
+
+/**
+ * Analyzes an image and extracts transaction data using OpenAI
+ * @param {FormData} formData - Form data containing the image
+ * @returns {Promise<{success: boolean, transaction: Transaction}>} Analysis result
+ */
+export const analyzeTransactionImageWithOpenAI = async (
+  formData: FormData
+): Promise<{ success: boolean; transaction: Transaction }> => {
+  try {
+    const res = await fetch("/api/transaction-image-analysis", {
+      method: "POST",
+      body: formData,
+    });
+
+    if (!res.ok) {
+      const errorData = await res.json();
+      throw new Error(
+        errorData.message ||
+          `Failed to analyze image: ${res.status} ${res.statusText}`
+      );
+    }
+
+    return await res.json();
+  } catch (error) {
+    console.error("Error analyzing transaction image:", error);
+    throw error;
+  }
+};
