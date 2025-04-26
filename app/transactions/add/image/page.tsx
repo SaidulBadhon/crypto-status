@@ -11,10 +11,7 @@ import {
   CardFooter,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import {
-  analyzeTransactionImageWithOpenAI,
-  addTransaction,
-} from "@/lib/api";
+import { analyzeTransactionImageWithOpenAI, addTransaction } from "@/lib/api";
 import { Transaction } from "@/types";
 import {
   AlertCircle,
@@ -46,11 +43,11 @@ export default function AddTransactionImagePage() {
     if (e.target.files && e.target.files.length > 0) {
       const file = e.target.files[0];
       setSelectedImage(file);
-      
+
       // Create a preview URL for the image
       const url = URL.createObjectURL(file);
       setPreviewUrl(url);
-      
+
       // Reset any previous analysis
       setAnalyzedData(null);
       setJsonPreview("");
@@ -168,7 +165,7 @@ export default function AddTransactionImagePage() {
       <div className="flex flex-col gap-2">
         <h1 className="text-3xl font-bold">Add Transaction from Image</h1>
         <p className="text-muted-foreground">
-          Upload an image of your transaction and we'll extract the details
+          Upload an image of your transaction and we&apos;ll extract the details
         </p>
       </div>
 
@@ -290,14 +287,20 @@ export default function AddTransactionImagePage() {
                     </div>
                     <div>
                       <h3 className="text-sm font-medium mb-1">Coin</h3>
-                      <p className="text-lg font-semibold">{analyzedData.coin}</p>
+                      <p className="text-lg font-semibold">
+                        {analyzedData.coin}
+                      </p>
                     </div>
                     <div>
                       <h3 className="text-sm font-medium mb-1">Amount</h3>
-                      <p className="text-lg font-semibold">{analyzedData.amount}</p>
+                      <p className="text-lg font-semibold">
+                        {analyzedData.amount}
+                      </p>
                     </div>
                     <div>
-                      <h3 className="text-sm font-medium mb-1">Price per Coin</h3>
+                      <h3 className="text-sm font-medium mb-1">
+                        Price per Coin
+                      </h3>
                       <p className="text-lg font-semibold">
                         ${analyzedData.pricePerCoin}
                       </p>
@@ -310,7 +313,9 @@ export default function AddTransactionImagePage() {
                     </div>
                     <div>
                       <h3 className="text-sm font-medium mb-1">Fee</h3>
-                      <p className="text-lg font-semibold">${analyzedData.fee}</p>
+                      <p className="text-lg font-semibold">
+                        ${analyzedData.fee}
+                      </p>
                     </div>
                     {analyzedData.notes && (
                       <div className="md:col-span-2">
@@ -367,8 +372,8 @@ export default function AddTransactionImagePage() {
               <div>
                 <h3 className="font-medium">Image Quality</h3>
                 <p className="text-sm text-muted-foreground mt-1">
-                  For best results, ensure your image is clear and all transaction
-                  details are visible.
+                  For best results, ensure your image is clear and all
+                  transaction details are visible.
                 </p>
               </div>
 
@@ -383,16 +388,16 @@ export default function AddTransactionImagePage() {
               <div>
                 <h3 className="font-medium">Review Carefully</h3>
                 <p className="text-sm text-muted-foreground mt-1">
-                  Always review the extracted information before saving to ensure
-                  accuracy.
+                  Always review the extracted information before saving to
+                  ensure accuracy.
                 </p>
               </div>
 
               <div>
                 <h3 className="font-medium">Manual Editing</h3>
                 <p className="text-sm text-muted-foreground mt-1">
-                  If the extracted data isn't perfect, you can add a transaction
-                  manually from the transactions page.
+                  If the extracted data isn&apos;t perfect, you can add a
+                  transaction manually from the transactions page.
                 </p>
               </div>
             </CardContent>

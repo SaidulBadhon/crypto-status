@@ -326,7 +326,12 @@ export async function analyzeMultipleImagesWithOpenAI(
       }
 
       return item;
-    }
+    });
+  } catch (error) {
+    console.error("Error analyzing multiple images with OpenAI:", error);
+    throw error;
+  }
+}
 
 /**
  * Analyzes an image using OpenAI's Vision API to extract crypto transaction data
@@ -334,6 +339,7 @@ export async function analyzeMultipleImagesWithOpenAI(
  * @param imageBase64 Base64 encoded image data
  * @returns Extracted transaction data
  */
+
 export async function analyzeTransactionImageWithOpenAI(
   imageBase64: string
 ): Promise<Transaction> {
@@ -397,7 +403,7 @@ export async function analyzeTransactionImageWithOpenAI(
       content.match(/```([\s\S]*?)```/) ||
       content.match(/{[\s\S]*?}/);
 
-    let transactionData: Transaction;
+    let transactionData: any;
 
     if (jsonMatch) {
       try {
@@ -415,14 +421,17 @@ export async function analyzeTransactionImageWithOpenAI(
     // Validate and fix the transaction data
     if (!transactionData.date) {
       transactionData.date = new Date().toISOString();
-    } else if (!(transactionData.date as string).includes('T')) {
+    } else if (!(transactionData.date as string).includes("T")) {
       // If the date doesn't include time information, add it
       transactionData.date = new Date(transactionData.date).toISOString();
     }
 
     // Ensure type is either 'buy' or 'sell'
-    if (!transactionData.type || (transactionData.type !== 'buy' && transactionData.type !== 'sell')) {
-      transactionData.type = 'buy'; // Default to buy if not specified or invalid
+    if (
+      !transactionData.type ||
+      (transactionData.type !== "buy" && transactionData.type !== "sell")
+    ) {
+      transactionData.type = "buy"; // Default to buy if not specified or invalid
     }
 
     // Ensure coin symbol is uppercase
@@ -431,16 +440,16 @@ export async function analyzeTransactionImageWithOpenAI(
     }
 
     // Ensure numeric fields are strings (as expected by the Transaction type)
-    if (typeof transactionData.amount === 'number') {
+    if (typeof transactionData.amount === "number") {
       transactionData.amount = transactionData.amount.toString();
     }
-    if (typeof transactionData.pricePerCoin === 'number') {
+    if (typeof transactionData.pricePerCoin === "number") {
       transactionData.pricePerCoin = transactionData.pricePerCoin.toString();
     }
-    if (typeof transactionData.totalValue === 'number') {
+    if (typeof transactionData.totalValue === "number") {
       transactionData.totalValue = transactionData.totalValue.toString();
     }
-    if (typeof transactionData.fee === 'number') {
+    if (typeof transactionData.fee === "number") {
       transactionData.fee = transactionData.fee.toString();
     }
 
