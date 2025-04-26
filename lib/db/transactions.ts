@@ -19,6 +19,8 @@ export async function getAllTransactions(): Promise<Transaction[]> {
     // Find all documents and sort by date in descending order
     const transactions = await collection.find({}).sort({ date: -1 }).toArray();
 
+    console.log("Fetched transactions:", transactions);
+
     return transactions as unknown as Transaction[];
   } catch (error) {
     console.error("Error fetching transactions:", error);

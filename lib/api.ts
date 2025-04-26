@@ -225,6 +225,7 @@ export const getTransactions = async (
     });
 
     if (!res.ok) {
+      console.log(res);
       throw new Error(`Failed to fetch: ${res.status} ${res.statusText}`);
     }
 

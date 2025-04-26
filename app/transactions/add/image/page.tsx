@@ -96,7 +96,10 @@ export default function AddTransactionImagePage() {
       const result = await analyzeTransactionImageWithOpenAI(formData);
 
       if (result.success && result.transaction) {
-        setAnalyzedData(result.transaction);
+        setAnalyzedData({
+          ...result.transaction,
+          date: new Date().toISOString(),
+        });
         setJsonPreview(JSON.stringify(result.transaction, null, 2));
         setSuccess("Image analyzed successfully");
       } else {

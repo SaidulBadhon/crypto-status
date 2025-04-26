@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { use, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import {
   Card,
@@ -14,12 +14,8 @@ import Link from "next/link";
 import { Transaction, TransactionType } from "@/types";
 import { getTransactionById, updateTransaction } from "@/lib/api";
 
-export default async function Page({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
-  const { id } = await params;
+export default function Page({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = use(params);
 
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(true);
