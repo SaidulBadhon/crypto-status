@@ -8,11 +8,8 @@ import {
   Loader2,
   RefreshCw,
   Copy,
-  Menu,
   X,
   PlusCircle,
-  Check,
-  ChevronsUpDown,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -30,6 +27,22 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  SidebarProvider,
+  Sidebar,
+  SidebarTrigger,
+  SidebarContent,
+  SidebarHeader,
+  SidebarGroup,
+  SidebarGroupLabel,
+  SidebarGroupContent,
+  SidebarMenu,
+  SidebarMenuItem,
+  SidebarMenuButton,
+  SidebarSeparator,
+  SidebarFooter,
+} from "@/components/ui/sidebar";
+import { cn } from "@/lib/utils";
 
 // Define message type
 interface ChatMessage {
@@ -71,7 +84,6 @@ export default function CopilotPage() {
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [streamingContent, setStreamingContent] = useState("");
-  const [showConversations, setShowConversations] = useState(false);
   const [selectedModel, setSelectedModel] = useState<string>("gpt-4.1-mini");
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -201,7 +213,6 @@ export default function CopilotPage() {
         setSelectedModel(conversation.model);
       }
       localStorage.setItem("lastConversationId", conversationId);
-      setShowConversations(false);
     }
   };
 
@@ -357,19 +368,13 @@ export default function CopilotPage() {
   };
 
   return (
-    <div className="flex h-screen w-full bg-background">
-      {/* Sidebar for conversation history */}
-      <div
-        className={`fixed inset-0 z-30 bg-background/80 backdrop-blur-sm transition-all duration-100
-          ${
-            showConversations ? "opacity-100" : "opacity-0 pointer-events-none"
-          } md:relative md:opacity-100 md:pointer-events-auto md:w-72 md:border-r md:border-border md:flex-shrink-0`}
-      >
-        <div className="h-full w-full md:w-72 bg-background md:bg-transparent flex flex-col">
-          {/* Sidebar header */}
-          <div className="p-3 border-b border-border flex items-center justify-between flex-shrink-0">
-            <h2 className="font-semibold text-sm">Conversations</h2>
-            <div className="flex gap-1">
+    <SidebarProvider>
+      <div className="flex h-screen w-full bg-background">
+        {/* Sidebar for conversation history */}
+        <Sidebar>
+          <SidebarHeader>
+            <div className="flex items-center justify-between">
+              <h2 className="font-semibold text-sm">Conversations</h2>
               <Button
                 variant="ghost"
                 size="icon"
@@ -379,118 +384,14 @@ export default function CopilotPage() {
               >
                 <PlusCircle className="h-4 w-4" />
               </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8 md:hidden"
-                onClick={() => setShowConversations(false)}
-                title="Close sidebar"
-              >
-                <X className="h-4 w-4" />
-              </Button>
             </div>
-          </div>
+          </SidebarHeader>
 
-          {/* Mobile model selector */}
-          <div className="p-3 border-b border-border md:hidden">
-            <Select
-              value={
-                conversations.find((c) => c.id === activeConversationId)
-                  ?.model || selectedModel
-              }
-              onValueChange={(value: string) => {
-                setSelectedModel(value);
-                if (activeConversationId) {
-                  // Update the current conversation with the new model
-                  updateCurrentConversation(messages, value);
-                }
-              }}
-            >
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Select model" />
-              </SelectTrigger>
-              <SelectContent>
-                {AVAILABLE_MODELS.map((model) => (
-                  <SelectItem key={model.id} value={model.id}>
-                    {model.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Conversation list */}
-          <div className="flex-1 overflow-y-auto">
-            {conversations.length === 0 ? (
-              <div className="text-center text-muted-foreground p-4 text-sm">
-                No conversations yet
-              </div>
-            ) : (
-              <div className="py-2">
-                {conversations.map((conversation) => (
-                  <div
-                    key={conversation.id}
-                    className={`px-3 py-2 mx-2 my-1 rounded-md cursor-pointer flex justify-between items-center hover:bg-accent/50 transition-colors ${
-                      conversation.id === activeConversationId
-                        ? "bg-accent"
-                        : ""
-                    }`}
-                    onClick={() => switchConversation(conversation.id)}
-                  >
-                    <div className="truncate flex-1 mr-2">
-                      <div className="font-medium truncate text-sm">
-                        {conversation.title}
-                      </div>
-                      <div className="flex justify-between text-xs text-muted-foreground mt-0.5">
-                        <span>
-                          {new Date(
-                            conversation.updatedAt
-                          ).toLocaleDateString()}
-                        </span>
-                        <span className="opacity-70">
-                          {AVAILABLE_MODELS.find(
-                            (m) => m.id === conversation.model
-                          )?.name || conversation.model}
-                        </span>
-                      </div>
-                    </div>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-7 w-7 opacity-50 hover:opacity-100 hover:bg-destructive/10 flex-shrink-0"
-                      onClick={(e) => deleteConversation(conversation.id, e)}
-                      title="Delete conversation"
-                    >
-                      <X className="h-3.5 w-3.5" />
-                    </Button>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* Main chat area */}
-      <div className="flex-1 flex flex-col h-screen overflow-hidden">
-        {/* Header - fixed at the top */}
-        <header className="border-b border-border py-3 px-6 flex-shrink-0">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Button
-                variant="ghost"
-                size="icon"
-                className="md:hidden"
-                onClick={() => setShowConversations(true)}
-              >
-                <Menu className="h-5 w-5" />
-              </Button>
-              <Bot className="h-6 w-6 text-primary" />
-              <h1 className="text-xl font-bold">Crypto Copilot</h1>
-            </div>
-            <div className="flex gap-2 items-center">
-              {/* Model selector */}
-              <div className="hidden sm:block">
+          <SidebarContent>
+            {/* Model selector group */}
+            <SidebarGroup>
+              <SidebarGroupLabel>Model</SidebarGroupLabel>
+              <SidebarGroupContent>
                 <Select
                   value={
                     conversations.find((c) => c.id === activeConversationId)
@@ -504,7 +405,7 @@ export default function CopilotPage() {
                     }
                   }}
                 >
-                  <SelectTrigger className="w-[180px] h-8">
+                  <SelectTrigger className="w-full">
                     <SelectValue placeholder="Select model" />
                   </SelectTrigger>
                   <SelectContent>
@@ -515,201 +416,314 @@ export default function CopilotPage() {
                     ))}
                   </SelectContent>
                 </Select>
-              </div>
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="h-8"
-                      onClick={() => createNewConversation(selectedModel)}
-                    >
-                      <PlusCircle className="h-4 w-4 mr-1" />
-                      <span className="hidden sm:inline">New</span>
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>New conversation</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      className="h-8 w-8"
-                      onClick={() => {
-                        // Reset current conversation
-                        if (activeConversationId) {
-                          const resetMessages = [WELCOME_MESSAGE];
-                          setMessages(resetMessages);
-                          setStreamingContent("");
-                          updateCurrentConversation(resetMessages);
-                        }
-                      }}
-                    >
-                      <RefreshCw className="h-4 w-4" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Reset conversation</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-            </div>
-          </div>
-        </header>
+              </SidebarGroupContent>
+            </SidebarGroup>
 
-        {/* Chat messages - scrollable area */}
-        <div className="flex-1 overflow-hidden flex flex-col">
-          <div className="flex-1 overflow-y-auto px-4 py-4 space-y-6">
-            {messages.map((message, index) => (
-              <div
-                key={index}
-                className={`flex ${
-                  message.role === "user" ? "justify-end" : "justify-start"
-                }`}
-              >
+            <SidebarSeparator />
+
+            {/* Conversations group */}
+            <SidebarGroup>
+              <SidebarGroupLabel>Your Conversations</SidebarGroupLabel>
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  {conversations.length === 0 ? (
+                    <div className="text-center text-muted-foreground p-4 text-sm">
+                      No conversations yet
+                    </div>
+                  ) : (
+                    conversations.map((conversation) => (
+                      <SidebarMenuItem
+                        key={conversation.id}
+                        className={cn(
+                          "flex justify-center rounded-md !py-4 items-center hover:bg-muted-foreground/5",
+                          conversation.id === activeConversationId &&
+                            "!bg-muted-foreground/15"
+                        )}
+                      >
+                        <SidebarMenuButton
+                          // isActive={conversation.id === activeConversationId}
+                          onClick={() => switchConversation(conversation.id)}
+                          className="justify-between bg-transparent hover:bg-transparent"
+                        >
+                          <div className="truncate flex-1">
+                            <div className="font-medium truncate text-sm">
+                              {conversation.title}
+                            </div>
+                            <div className="flex justify-between text-xs text-muted-foreground mt-0.5">
+                              <span>
+                                {new Date(
+                                  conversation.updatedAt
+                                ).toLocaleDateString()}
+                              </span>
+                              <span className="opacity-70">
+                                {AVAILABLE_MODELS.find(
+                                  (m) => m.id === conversation.model
+                                )?.name || conversation.model}
+                              </span>
+                            </div>
+                          </div>
+                        </SidebarMenuButton>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7 opacity-50 hover:opacity-100 hover:bg-destructive/10 flex-shrink-0 ml-2"
+                          onClick={(e) =>
+                            deleteConversation(conversation.id, e)
+                          }
+                          title="Delete conversation"
+                        >
+                          <X className="h-3.5 w-3.5" />
+                        </Button>
+                      </SidebarMenuItem>
+                    ))
+                  )}
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+          </SidebarContent>
+
+          <SidebarFooter>
+            <div className="text-xs text-muted-foreground text-center">
+              Crypto Copilot v1.0
+            </div>
+          </SidebarFooter>
+        </Sidebar>
+
+        {/* Main chat area */}
+        <div className="flex-1 flex flex-col h-screen overflow-hidden">
+          {/* Header - fixed at the top */}
+          <header className="border-b border-border py-3 px-6 flex-shrink-0">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <SidebarTrigger className="md:hidden" />
+                <Bot className="h-6 w-6 text-primary" />
+                <h1 className="text-xl font-bold">Crypto Copilot</h1>
+              </div>
+              <div className="flex gap-2 items-center">
+                {/* Model selector for desktop */}
+                <div className="hidden sm:block">
+                  <Select
+                    value={
+                      conversations.find((c) => c.id === activeConversationId)
+                        ?.model || selectedModel
+                    }
+                    onValueChange={(value: string) => {
+                      setSelectedModel(value);
+                      if (activeConversationId) {
+                        // Update the current conversation with the new model
+                        updateCurrentConversation(messages, value);
+                      }
+                    }}
+                  >
+                    <SelectTrigger className="w-[180px] h-8">
+                      <SelectValue placeholder="Select model" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {AVAILABLE_MODELS.map((model) => (
+                        <SelectItem key={model.id} value={model.id}>
+                          {model.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-8"
+                        onClick={() => createNewConversation(selectedModel)}
+                      >
+                        <PlusCircle className="h-4 w-4 mr-1" />
+                        <span className="hidden sm:inline">New</span>
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>New conversation</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        className="h-8 w-8"
+                        onClick={() => {
+                          // Reset current conversation
+                          if (activeConversationId) {
+                            const resetMessages = [WELCOME_MESSAGE];
+                            setMessages(resetMessages);
+                            setStreamingContent("");
+                            updateCurrentConversation(resetMessages);
+                          }
+                        }}
+                      >
+                        <RefreshCw className="h-4 w-4" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Reset conversation</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
+            </div>
+          </header>
+
+          {/* Chat messages - scrollable area */}
+          <div className="flex-1 overflow-hidden flex flex-col">
+            <div className="flex-1 overflow-y-auto px-4 py-4 space-y-6">
+              {messages.map((message, index) => (
                 <div
-                  className={`relative flex max-w-[85%] ${
-                    message.role === "user"
-                      ? "bg-primary text-primary-foreground"
-                      : "bg-muted"
-                  } rounded-lg p-4 shadow-sm`}
+                  key={index}
+                  className={`flex ${
+                    message.role === "user" ? "justify-end" : "justify-start"
+                  }`}
                 >
-                  <div className="mr-3 mt-0.5 flex-shrink-0">
-                    {message.role === "user" ? (
-                      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary-foreground/20">
-                        <User className="h-5 w-5" />
+                  <div
+                    className={`relative flex max-w-[85%] ${
+                      message.role === "user"
+                        ? "bg-primary text-primary-foreground"
+                        : "bg-muted"
+                    } rounded-lg p-4 shadow-sm`}
+                  >
+                    <div className="mr-3 mt-0.5 flex-shrink-0">
+                      {message.role === "user" ? (
+                        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary-foreground/20">
+                          <User className="h-5 w-5" />
+                        </div>
+                      ) : (
+                        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10">
+                          <Bot className="h-5 w-5" />
+                        </div>
+                      )}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      {message.role === "assistant" ? (
+                        <MarkdownRenderer content={message.content} />
+                      ) : (
+                        <div className="whitespace-pre-wrap">
+                          {message.content}
+                        </div>
+                      )}
+                      <div className="mt-2 flex items-center justify-between text-xs opacity-50">
+                        <div className="flex items-center gap-2">
+                          <span>
+                            {typeof message.timestamp === "string"
+                              ? new Date(message.timestamp).toLocaleTimeString()
+                              : message.timestamp.toLocaleTimeString()}
+                          </span>
+                          {message.role === "assistant" && (
+                            <span className="text-xs opacity-70">
+                              {conversations.find(
+                                (c) => c.id === activeConversationId
+                              )?.model || selectedModel}
+                            </span>
+                          )}
+                        </div>
+                        {message.role === "assistant" && (
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-6 w-6 opacity-50 hover:opacity-100"
+                                  onClick={() =>
+                                    copyToClipboard(message.content)
+                                  }
+                                >
+                                  <Copy className="h-3 w-3" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>Copy to clipboard</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        )}
                       </div>
-                    ) : (
+                    </div>
+                  </div>
+                </div>
+              ))}
+
+              {/* Streaming content */}
+              {streamingContent && (
+                <div className="flex justify-start">
+                  <div className="relative flex max-w-[85%] bg-muted rounded-lg p-4 shadow-sm">
+                    <div className="mr-3 mt-0.5 flex-shrink-0">
                       <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10">
                         <Bot className="h-5 w-5" />
                       </div>
-                    )}
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    {message.role === "assistant" ? (
-                      <MarkdownRenderer content={message.content} />
-                    ) : (
-                      <div className="whitespace-pre-wrap">
-                        {message.content}
-                      </div>
-                    )}
-                    <div className="mt-2 flex items-center justify-between text-xs opacity-50">
-                      <div className="flex items-center gap-2">
-                        <span>
-                          {typeof message.timestamp === "string"
-                            ? new Date(message.timestamp).toLocaleTimeString()
-                            : message.timestamp.toLocaleTimeString()}
-                        </span>
-                        {message.role === "assistant" && (
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <MarkdownRenderer content={streamingContent} />
+                      <div className="mt-2 flex items-center justify-between text-xs opacity-50">
+                        <div className="flex items-center gap-2">
+                          <span>{new Date().toLocaleTimeString()}</span>
                           <span className="text-xs opacity-70">
                             {conversations.find(
                               (c) => c.id === activeConversationId
                             )?.model || selectedModel}
                           </span>
-                        )}
-                      </div>
-                      {message.role === "assistant" && (
-                        <TooltipProvider>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-6 w-6 opacity-50 hover:opacity-100"
-                                onClick={() => copyToClipboard(message.content)}
-                              >
-                                <Copy className="h-3 w-3" />
-                              </Button>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              <p>Copy to clipboard</p>
-                            </TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))}
-
-            {/* Streaming content */}
-            {streamingContent && (
-              <div className="flex justify-start">
-                <div className="relative flex max-w-[85%] bg-muted rounded-lg p-4 shadow-sm">
-                  <div className="mr-3 mt-0.5 flex-shrink-0">
-                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10">
-                      <Bot className="h-5 w-5" />
-                    </div>
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <MarkdownRenderer content={streamingContent} />
-                    <div className="mt-2 flex items-center justify-between text-xs opacity-50">
-                      <div className="flex items-center gap-2">
-                        <span>{new Date().toLocaleTimeString()}</span>
-                        <span className="text-xs opacity-70">
-                          {conversations.find(
-                            (c) => c.id === activeConversationId
-                          )?.model || selectedModel}
-                        </span>
+                        </div>
                       </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            )}
+              )}
 
-            {/* Loading indicator */}
-            {isLoading && !streamingContent && (
-              <div className="flex justify-start">
-                <div className="flex bg-muted rounded-lg p-4 shadow-sm">
-                  <div className="mr-3 mt-0.5 flex-shrink-0">
-                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10">
-                      <Bot className="h-5 w-5" />
+              {/* Loading indicator */}
+              {isLoading && !streamingContent && (
+                <div className="flex justify-start">
+                  <div className="flex bg-muted rounded-lg p-4 shadow-sm">
+                    <div className="mr-3 mt-0.5 flex-shrink-0">
+                      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10">
+                        <Bot className="h-5 w-5" />
+                      </div>
+                    </div>
+                    <div className="flex items-center">
+                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                      <span>Thinking...</span>
                     </div>
                   </div>
-                  <div className="flex items-center">
+                </div>
+              )}
+              <div ref={messagesEndRef} />
+            </div>
+
+            {/* Input area - fixed at the bottom */}
+            <div className="border-t border-border py-3 px-4 flex-shrink-0 bg-background">
+              <form onSubmit={handleSubmit} className="flex gap-2">
+                <Input
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  placeholder="Ask about crypto markets..."
+                  disabled={isLoading}
+                  className="flex-1 py-5"
+                />
+                <Button
+                  type="submit"
+                  disabled={isLoading || !input.trim()}
+                  className="px-4"
+                >
+                  {isLoading ? (
                     <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                    <span>Thinking...</span>
-                  </div>
-                </div>
-              </div>
-            )}
-            <div ref={messagesEndRef} />
-          </div>
-
-          {/* Input area - fixed at the bottom */}
-          <div className="border-t border-border py-3 px-4 flex-shrink-0 bg-background">
-            <form onSubmit={handleSubmit} className="flex gap-2">
-              <Input
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                placeholder="Ask about crypto markets..."
-                disabled={isLoading}
-                className="flex-1 py-5"
-              />
-              <Button
-                type="submit"
-                disabled={isLoading || !input.trim()}
-                className="px-4"
-              >
-                {isLoading ? (
-                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                ) : (
-                  <Send className="h-4 w-4 mr-2" />
-                )}
-                <span>Send</span>
-              </Button>
-            </form>
+                  ) : (
+                    <Send className="h-4 w-4 mr-2" />
+                  )}
+                  <span>Send</span>
+                </Button>
+              </form>
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    </SidebarProvider>
   );
 }
