@@ -325,25 +325,26 @@ export default function CopilotPage() {
         className={`fixed inset-0 z-30 bg-background/80 backdrop-blur-sm transition-all duration-100
           ${
             showConversations ? "opacity-100" : "opacity-0 pointer-events-none"
-          } md:relative md:opacity-100 md:pointer-events-auto md:w-80 md:border-r md:border-border`}
+          } md:relative md:opacity-100 md:pointer-events-auto md:w-72 md:border-r md:border-border md:flex-shrink-0`}
       >
-        <div className="h-full w-full md:w-80 bg-background md:bg-transparent flex flex-col">
+        <div className="h-full w-full md:w-72 bg-background md:bg-transparent flex flex-col">
           {/* Sidebar header */}
-          <div className="p-4 border-b border-border flex items-center justify-between">
-            <h2 className="font-semibold">Conversations</h2>
-            <div className="flex gap-2">
+          <div className="p-3 border-b border-border flex items-center justify-between flex-shrink-0">
+            <h2 className="font-semibold text-sm">Conversations</h2>
+            <div className="flex gap-1">
               <Button
-                variant="outline"
+                variant="ghost"
                 size="icon"
+                className="h-8 w-8"
                 onClick={createNewConversation}
                 title="New conversation"
               >
                 <PlusCircle className="h-4 w-4" />
               </Button>
               <Button
-                variant="outline"
+                variant="ghost"
                 size="icon"
-                className="md:hidden"
+                className="h-8 w-8 md:hidden"
                 onClick={() => setShowConversations(false)}
                 title="Close sidebar"
               >
@@ -353,39 +354,39 @@ export default function CopilotPage() {
           </div>
 
           {/* Conversation list */}
-          <div className="flex-1 overflow-y-auto p-2">
+          <div className="flex-1 overflow-y-auto">
             {conversations.length === 0 ? (
-              <div className="text-center text-muted-foreground p-4">
+              <div className="text-center text-muted-foreground p-4 text-sm">
                 No conversations yet
               </div>
             ) : (
-              <div className="space-y-2">
+              <div className="py-2">
                 {conversations.map((conversation) => (
                   <div
                     key={conversation.id}
-                    className={`p-3 rounded-md cursor-pointer flex justify-between items-center hover:bg-accent/50 ${
+                    className={`px-3 py-2 mx-2 my-1 rounded-md cursor-pointer flex justify-between items-center hover:bg-accent/50 transition-colors ${
                       conversation.id === activeConversationId
                         ? "bg-accent"
                         : ""
                     }`}
                     onClick={() => switchConversation(conversation.id)}
                   >
-                    <div className="truncate flex-1">
-                      <div className="font-medium truncate">
+                    <div className="truncate flex-1 mr-2">
+                      <div className="font-medium truncate text-sm">
                         {conversation.title}
                       </div>
-                      <div className="text-xs text-muted-foreground">
+                      <div className="text-xs text-muted-foreground mt-0.5">
                         {new Date(conversation.updatedAt).toLocaleDateString()}
                       </div>
                     </div>
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="h-8 w-8 opacity-50 hover:opacity-100 hover:bg-destructive/10"
+                      className="h-7 w-7 opacity-50 hover:opacity-100 hover:bg-destructive/10 flex-shrink-0"
                       onClick={(e) => deleteConversation(conversation.id, e)}
                       title="Delete conversation"
                     >
-                      <X className="h-4 w-4" />
+                      <X className="h-3.5 w-3.5" />
                     </Button>
                   </div>
                 ))}
@@ -396,9 +397,9 @@ export default function CopilotPage() {
       </div>
 
       {/* Main chat area */}
-      <div className="flex-1 flex flex-col h-screen">
-        {/* Header */}
-        <header className="border-b border-border py-4 px-6">
+      <div className="flex-1 flex flex-col h-screen overflow-hidden">
+        {/* Header - fixed at the top */}
+        <header className="border-b border-border py-3 px-6 flex-shrink-0">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Button
@@ -410,7 +411,7 @@ export default function CopilotPage() {
                 <Menu className="h-5 w-5" />
               </Button>
               <Bot className="h-6 w-6 text-primary" />
-              <h1 className="text-2xl font-bold">Crypto Copilot</h1>
+              <h1 className="text-xl font-bold">Crypto Copilot</h1>
             </div>
             <div className="flex gap-2">
               <TooltipProvider>
@@ -418,10 +419,12 @@ export default function CopilotPage() {
                   <TooltipTrigger asChild>
                     <Button
                       variant="outline"
-                      size="icon"
+                      size="sm"
+                      className="h-8"
                       onClick={createNewConversation}
                     >
-                      <PlusCircle className="h-4 w-4" />
+                      <PlusCircle className="h-4 w-4 mr-1" />
+                      <span className="hidden sm:inline">New</span>
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent>
@@ -435,6 +438,7 @@ export default function CopilotPage() {
                     <Button
                       variant="outline"
                       size="icon"
+                      className="h-8 w-8"
                       onClick={() => {
                         // Reset current conversation
                         if (activeConversationId) {
@@ -457,141 +461,136 @@ export default function CopilotPage() {
           </div>
         </header>
 
-        {/* Main content */}
-        <main className="flex-1 overflow-hidden">
-          <div className="h-full px-4 flex flex-col">
-            {/* Chat messages */}
-            <div className="flex-1 overflow-y-auto py-6 space-y-6">
-              {messages.map((message, index) => (
+        {/* Chat messages - scrollable area */}
+        <div className="flex-1 overflow-hidden flex flex-col">
+          <div className="flex-1 overflow-y-auto px-4 py-4 space-y-6">
+            {messages.map((message, index) => (
+              <div
+                key={index}
+                className={`flex ${
+                  message.role === "user" ? "justify-end" : "justify-start"
+                }`}
+              >
                 <div
-                  key={index}
-                  className={`flex ${
-                    message.role === "user" ? "justify-end" : "justify-start"
-                  }`}
+                  className={`relative flex max-w-[85%] ${
+                    message.role === "user"
+                      ? "bg-primary text-primary-foreground"
+                      : "bg-muted"
+                  } rounded-lg p-4 shadow-sm`}
                 >
-                  <div
-                    className={`relative flex max-w-[85%] ${
-                      message.role === "user"
-                        ? "bg-primary text-primary-foreground"
-                        : "bg-muted"
-                    } rounded-lg p-4 shadow-sm`}
-                  >
-                    <div className="mr-3 mt-0.5 flex-shrink-0">
-                      {message.role === "user" ? (
-                        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary-foreground/20">
-                          <User className="h-5 w-5" />
-                        </div>
-                      ) : (
-                        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10">
-                          <Bot className="h-5 w-5" />
-                        </div>
-                      )}
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      {message.role === "assistant" ? (
-                        <MarkdownRenderer content={message.content} />
-                      ) : (
-                        <div className="whitespace-pre-wrap">
-                          {message.content}
-                        </div>
-                      )}
-                      <div className="mt-2 flex items-center justify-between text-xs opacity-50">
-                        <span>
-                          {typeof message.timestamp === "string"
-                            ? new Date(message.timestamp).toLocaleTimeString()
-                            : message.timestamp.toLocaleTimeString()}
-                        </span>
-                        {message.role === "assistant" && (
-                          <TooltipProvider>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  className="h-6 w-6 opacity-50 hover:opacity-100"
-                                  onClick={() =>
-                                    copyToClipboard(message.content)
-                                  }
-                                >
-                                  <Copy className="h-3 w-3" />
-                                </Button>
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                <p>Copy to clipboard</p>
-                              </TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
-                        )}
+                  <div className="mr-3 mt-0.5 flex-shrink-0">
+                    {message.role === "user" ? (
+                      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary-foreground/20">
+                        <User className="h-5 w-5" />
                       </div>
-                    </div>
-                  </div>
-                </div>
-              ))}
-
-              {/* Streaming content */}
-              {streamingContent && (
-                <div className="flex justify-start">
-                  <div className="relative flex max-w-[85%] bg-muted rounded-lg p-4 shadow-sm">
-                    <div className="mr-3 mt-0.5 flex-shrink-0">
+                    ) : (
                       <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10">
                         <Bot className="h-5 w-5" />
                       </div>
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <MarkdownRenderer content={streamingContent} />
-                      <div className="mt-2 flex items-center justify-between text-xs opacity-50">
-                        <span>{new Date().toLocaleTimeString()}</span>
+                    )}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    {message.role === "assistant" ? (
+                      <MarkdownRenderer content={message.content} />
+                    ) : (
+                      <div className="whitespace-pre-wrap">
+                        {message.content}
                       </div>
+                    )}
+                    <div className="mt-2 flex items-center justify-between text-xs opacity-50">
+                      <span>
+                        {typeof message.timestamp === "string"
+                          ? new Date(message.timestamp).toLocaleTimeString()
+                          : message.timestamp.toLocaleTimeString()}
+                      </span>
+                      {message.role === "assistant" && (
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-6 w-6 opacity-50 hover:opacity-100"
+                                onClick={() => copyToClipboard(message.content)}
+                              >
+                                <Copy className="h-3 w-3" />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>Copy to clipboard</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      )}
                     </div>
                   </div>
                 </div>
-              )}
+              </div>
+            ))}
 
-              {/* Loading indicator */}
-              {isLoading && !streamingContent && (
-                <div className="flex justify-start">
-                  <div className="flex bg-muted rounded-lg p-4 shadow-sm">
-                    <div className="mr-3 mt-0.5 flex-shrink-0">
-                      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10">
-                        <Bot className="h-5 w-5" />
-                      </div>
+            {/* Streaming content */}
+            {streamingContent && (
+              <div className="flex justify-start">
+                <div className="relative flex max-w-[85%] bg-muted rounded-lg p-4 shadow-sm">
+                  <div className="mr-3 mt-0.5 flex-shrink-0">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10">
+                      <Bot className="h-5 w-5" />
                     </div>
-                    <div className="flex items-center">
-                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                      <span>Thinking...</span>
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <MarkdownRenderer content={streamingContent} />
+                    <div className="mt-2 flex items-center justify-between text-xs opacity-50">
+                      <span>{new Date().toLocaleTimeString()}</span>
                     </div>
                   </div>
                 </div>
-              )}
-              <div ref={messagesEndRef} />
-            </div>
+              </div>
+            )}
 
-            {/* Input area */}
-            <div className="py-4 border-t border-border">
-              <form onSubmit={handleSubmit} className="flex gap-2">
-                <Input
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  placeholder="Ask about crypto markets..."
-                  disabled={isLoading}
-                  className="flex-1 py-6"
-                />
-                <Button
-                  type="submit"
-                  disabled={isLoading || !input.trim()}
-                  className="px-4"
-                >
-                  {isLoading ? (
+            {/* Loading indicator */}
+            {isLoading && !streamingContent && (
+              <div className="flex justify-start">
+                <div className="flex bg-muted rounded-lg p-4 shadow-sm">
+                  <div className="mr-3 mt-0.5 flex-shrink-0">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10">
+                      <Bot className="h-5 w-5" />
+                    </div>
+                  </div>
+                  <div className="flex items-center">
                     <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                  ) : (
-                    <Send className="h-4 w-4 mr-2" />
-                  )}
-                  <span>Send</span>
-                </Button>
-              </form>
-            </div>
+                    <span>Thinking...</span>
+                  </div>
+                </div>
+              </div>
+            )}
+            <div ref={messagesEndRef} />
           </div>
-        </main>
+
+          {/* Input area - fixed at the bottom */}
+          <div className="border-t border-border py-3 px-4 flex-shrink-0 bg-background">
+            <form onSubmit={handleSubmit} className="flex gap-2">
+              <Input
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                placeholder="Ask about crypto markets..."
+                disabled={isLoading}
+                className="flex-1 py-5"
+              />
+              <Button
+                type="submit"
+                disabled={isLoading || !input.trim()}
+                className="px-4"
+              >
+                {isLoading ? (
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                ) : (
+                  <Send className="h-4 w-4 mr-2" />
+                )}
+                <span>Send</span>
+              </Button>
+            </form>
+          </div>
+        </div>
       </div>
     </div>
   );
