@@ -4,6 +4,7 @@ import {
   Transaction,
   TransactionType,
 } from "@/types";
+import { CryptoMarketData } from "./crypto-market";
 
 /**
  * Analyzes an image using OpenAI's Vision API to extract crypto portfolio data
@@ -463,6 +464,174 @@ export async function analyzeTransactionImageWithOpenAI(
     return transactionData;
   } catch (error) {
     console.error("Error analyzing transaction image with OpenAI:", error);
+    throw error;
+  }
+}
+
+/**
+ * Generates crypto market advice and suggestions using OpenAI
+ *
+ * @param message User's message or question
+ * @param marketData Current cryptocurrency market data
+ * @returns AI-generated response with advice and suggestions
+ */
+export async function generateCryptoAdvice(
+  message: string,
+  marketData: CryptoMarketData[]
+): Promise<string> {
+  try {
+    // Check if OpenAI API key is configured
+    if (!process.env.OPENAI_API_KEY) {
+      throw new Error("OpenAI API key is not configured");
+    }
+
+    // Format market data for the prompt
+    const topCoins = marketData.slice(0, 10);
+    const marketDataText = topCoins
+      .map(
+        (coin) =>
+          `${coin.name} (${coin.symbol}): $${coin.current_price.toFixed(
+            2
+          )}, 24h change: ${coin.price_change_percentage_24h.toFixed(2)}%`
+      )
+      .join("\n");
+
+    // Prepare the API request to OpenAI
+    const response = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+      },
+      body: JSON.stringify({
+        model: "gpt-4.1-mini",
+        messages: [
+          {
+            role: "system",
+            content: `You are a cryptocurrency market advisor. You provide insights, analysis, and suggestions about cryptocurrency markets.
+
+Current market data (top 10 cryptocurrencies by market cap):
+${marketDataText}
+
+Current date: ${new Date().toISOString()}
+
+Important guidelines:
+1. Always provide balanced advice, mentioning both potential upsides and risks
+2. Remind users that cryptocurrency markets are highly volatile and unpredictable
+3. Never make definitive price predictions or guarantees
+4. Always suggest diversification and risk management
+5. Format your responses in a clear, readable way with sections and bullet points where appropriate
+6. If asked about specific coins not in the top 10, acknowledge the limitations of your current market data
+7. Provide educational content when appropriate
+8. Be conversational and helpful, but professional`,
+          },
+          {
+            role: "user",
+            content: message,
+          },
+        ],
+        temperature: 0.7,
+      }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(
+        `OpenAI API error: ${errorData.error?.message || response.statusText}`
+      );
+    }
+
+    const data = await response.json();
+    const content = data.choices[0]?.message?.content;
+
+    if (!content) {
+      throw new Error("No content returned from OpenAI");
+    }
+
+    return content;
+  } catch (error) {
+    console.error("Error generating crypto advice with OpenAI:", error);
+    throw error;
+  }
+}
+
+/**
+ * Generates crypto market advice and suggestions using OpenAI with streaming
+ *
+ * @param message User's message or question
+ * @param marketData Current cryptocurrency market data
+ * @returns Stream of AI-generated response chunks
+ */
+export async function generateCryptoAdviceStream(
+  message: string,
+  marketData: CryptoMarketData[]
+): Promise<ReadableStream<Uint8Array>> {
+  try {
+    // Check if OpenAI API key is configured
+    if (!process.env.OPENAI_API_KEY) {
+      throw new Error("OpenAI API key is not configured");
+    }
+
+    // Format market data for the prompt
+    const topCoins = marketData.slice(0, 10);
+    const marketDataText = topCoins
+      .map(
+        (coin) =>
+          `${coin.name} (${coin.symbol}): $${coin.current_price.toFixed(
+            2
+          )}, 24h change: ${coin.price_change_percentage_24h.toFixed(2)}%`
+      )
+      .join("\n");
+
+    // Prepare the API request to OpenAI with streaming enabled
+    const response = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+      },
+      body: JSON.stringify({
+        model: "gpt-4.1-mini",
+        messages: [
+          {
+            role: "system",
+            content: `You are a cryptocurrency market advisor. You provide insights, analysis, and suggestions about cryptocurrency markets.
+
+Current market data (top 10 cryptocurrencies by market cap):
+${marketDataText}
+
+Current date: ${new Date().toISOString()}
+
+Important guidelines:
+1. Always provide balanced advice, mentioning both potential upsides and risks
+2. Remind users that cryptocurrency markets are highly volatile and unpredictable
+3. Never make definitive price predictions or guarantees
+4. Always suggest diversification and risk management
+5. Format your responses in a clear, readable way with sections and bullet points where appropriate
+6. If asked about specific coins not in the top 10, acknowledge the limitations of your current market data
+7. Provide educational content when appropriate
+8. Be conversational and helpful, but professional`,
+          },
+          {
+            role: "user",
+            content: message,
+          },
+        ],
+        temperature: 0.7,
+        stream: true, // Enable streaming
+      }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(
+        `OpenAI API error: ${errorData.error?.message || response.statusText}`
+      );
+    }
+
+    return response.body as ReadableStream<Uint8Array>;
+  } catch (error) {
+    console.error("Error generating crypto advice stream with OpenAI:", error);
     throw error;
   }
 }

@@ -11,6 +11,7 @@ import {
   Settings,
   Database,
   ArrowUpDown,
+  Bot,
 } from "lucide-react";
 import Link from "next/link";
 import { useState, useEffect, useCallback } from "react";
@@ -100,6 +101,11 @@ export default function MainLayout({
       path: "/add",
       label: "Add Entry",
       icon: <PlusCircle className="h-4 w-4" />,
+    },
+    {
+      path: "/copilot",
+      label: "Copilot",
+      icon: <Bot className="h-4 w-4" />,
     },
   ];
 
