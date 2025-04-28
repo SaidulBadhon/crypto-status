@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { cn } from "@/lib/utils";
 import {
   Bot,
   Send,
@@ -41,8 +42,8 @@ import {
   SidebarMenuButton,
   SidebarSeparator,
   SidebarFooter,
+  SidebarRail,
 } from "@/components/ui/sidebar";
-import { cn } from "@/lib/utils";
 
 // Define message type
 interface ChatMessage {
@@ -371,10 +372,13 @@ export default function CopilotPage() {
     <SidebarProvider>
       <div className="flex h-screen w-full bg-background">
         {/* Sidebar for conversation history */}
-        <Sidebar>
+        <Sidebar collapsible="icon">
+          <SidebarRail />
           <SidebarHeader>
             <div className="flex items-center justify-between">
-              <h2 className="font-semibold text-sm">Conversations</h2>
+              <h2 className="font-semibold text-sm group-data-[collapsible=icon]:hidden">
+                Conversations
+              </h2>
               <Button
                 variant="ghost"
                 size="icon"
@@ -390,32 +394,57 @@ export default function CopilotPage() {
           <SidebarContent>
             {/* Model selector group */}
             <SidebarGroup>
-              <SidebarGroupLabel>Model</SidebarGroupLabel>
+              <SidebarGroupLabel>
+                <div className="flex items-center">
+                  <PlusCircle className="h-4 w-4 mr-2 flex-shrink-0" />
+                  <span className="group-data-[collapsible=icon]:hidden">
+                    Model
+                  </span>
+                </div>
+              </SidebarGroupLabel>
               <SidebarGroupContent>
-                <Select
-                  value={
-                    conversations.find((c) => c.id === activeConversationId)
-                      ?.model || selectedModel
-                  }
-                  onValueChange={(value: string) => {
-                    setSelectedModel(value);
-                    if (activeConversationId) {
-                      // Update the current conversation with the new model
-                      updateCurrentConversation(messages, value);
+                <div className="group-data-[collapsible=icon]:hidden">
+                  <Select
+                    value={
+                      conversations.find((c) => c.id === activeConversationId)
+                        ?.model || selectedModel
                     }
-                  }}
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Select model" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {AVAILABLE_MODELS.map((model) => (
-                      <SelectItem key={model.id} value={model.id}>
-                        {model.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                    onValueChange={(value: string) => {
+                      setSelectedModel(value);
+                      if (activeConversationId) {
+                        // Update the current conversation with the new model
+                        updateCurrentConversation(messages, value);
+                      }
+                    }}
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select model" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {AVAILABLE_MODELS.map((model) => (
+                        <SelectItem key={model.id} value={model.id}>
+                          {model.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <TooltipProvider delayDuration={0}>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div className="hidden group-data-[collapsible=icon]:flex items-center justify-center p-2 cursor-pointer hover:bg-muted rounded-md">
+                        <PlusCircle className="h-5 w-5" />
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent side="right">
+                      <p>
+                        Current model:{" "}
+                        {AVAILABLE_MODELS.find((m) => m.id === selectedModel)
+                          ?.name || selectedModel}
+                      </p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               </SidebarGroupContent>
             </SidebarGroup>
 
@@ -423,7 +452,14 @@ export default function CopilotPage() {
 
             {/* Conversations group */}
             <SidebarGroup>
-              <SidebarGroupLabel>Your Conversations</SidebarGroupLabel>
+              <SidebarGroupLabel>
+                <div className="flex items-center">
+                  <Bot className="h-4 w-4 mr-2 flex-shrink-0" />
+                  <span className="group-data-[collapsible=icon]:hidden">
+                    Your Conversations
+                  </span>
+                </div>
+              </SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>
                   {conversations.length === 0 ? (
@@ -445,6 +481,7 @@ export default function CopilotPage() {
                           onClick={() => switchConversation(conversation.id)}
                           className="justify-between bg-transparent hover:bg-transparent"
                         >
+                          <Bot className="h-4 w-4 mr-2 flex-shrink-0" />
                           <div className="truncate flex-1">
                             <div className="font-medium truncate text-sm">
                               {conversation.title}
@@ -483,8 +520,11 @@ export default function CopilotPage() {
           </SidebarContent>
 
           <SidebarFooter>
-            <div className="text-xs text-muted-foreground text-center">
+            <div className="text-xs text-muted-foreground text-center group-data-[collapsible=icon]:hidden">
               Crypto Copilot v1.0
+            </div>
+            <div className="hidden group-data-[collapsible=icon]:flex justify-center">
+              <Bot className="h-4 w-4 text-muted-foreground" />
             </div>
           </SidebarFooter>
         </Sidebar>
@@ -495,7 +535,7 @@ export default function CopilotPage() {
           <header className="border-b border-border py-3 px-6 flex-shrink-0">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <SidebarTrigger className="md:hidden" />
+                <SidebarTrigger />
                 <Bot className="h-6 w-6 text-primary" />
                 <h1 className="text-xl font-bold">Crypto Copilot</h1>
               </div>
