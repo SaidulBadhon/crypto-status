@@ -3,6 +3,7 @@
 import { useCopilot } from "../../context/CopilotContext";
 import { ModelSelector } from "./ModelSelector";
 import { ConversationList } from "./ConversationList";
+import { ConversationSearch, SortPeriod } from "./ConversationSearch";
 import { Button } from "@/components/ui/button";
 import { Bot, PlusCircle } from "lucide-react";
 import {
@@ -18,7 +19,13 @@ import {
 } from "@/components/ui/sidebar";
 
 export const ConversationSidebar = () => {
-  const { selectedModel, createNewConversation } = useCopilot();
+  const {
+    selectedModel,
+    createNewConversation,
+    searchConversations,
+    sortConversations,
+    groupConversations,
+  } = useCopilot();
 
   return (
     <Sidebar collapsible="icon">
@@ -69,6 +76,11 @@ export const ConversationSidebar = () => {
             </div>
           </SidebarGroupLabel>
           <SidebarGroupContent>
+            <ConversationSearch
+              onSearch={searchConversations}
+              onSortChange={sortConversations}
+              onGroupChange={groupConversations}
+            />
             <ConversationList />
           </SidebarGroupContent>
         </SidebarGroup>

@@ -1,13 +1,23 @@
 "use client";
 
-import React, { createContext, useContext, useState, useRef, useEffect } from "react";
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useRef,
+  useEffect,
+  useMemo,
+} from "react";
 import { generateImageWithDallE } from "@/lib/api";
 import { ChatMessage, Conversation, MessageType } from "../types";
 import { WELCOME_MESSAGE, AVAILABLE_MODELS } from "../constants";
+import { SortPeriod, GroupBy } from "../components/sidebar/ConversationSearch";
 
 interface CopilotContextType {
   // State
   conversations: Conversation[];
+  filteredConversations: Conversation[];
+  groupedConversations: Record<string, Conversation[]>;
   activeConversationId: string;
   messages: ChatMessage[];
   input: string;
@@ -23,15 +33,18 @@ interface CopilotContextType {
   imagePrompt: string;
   isGeneratingImage: boolean;
   isImageDialogOpen: boolean;
+  searchQuery: string;
+  sortPeriod: SortPeriod;
+  groupBy: GroupBy;
   messagesEndRef: React.RefObject<HTMLDivElement>;
   fileInputRef: React.RefObject<HTMLInputElement>;
-  
+
   // Setters
   setInput: React.Dispatch<React.SetStateAction<string>>;
   setSelectedInputType: React.Dispatch<React.SetStateAction<MessageType>>;
   setImagePrompt: React.Dispatch<React.SetStateAction<string>>;
   setIsImageDialogOpen: React.Dispatch<React.SetStateAction<boolean>>;
-  
+
   // Functions
   createNewConversation: (model?: string) => void;
   switchConversation: (conversationId: string) => void;
@@ -45,11 +58,18 @@ interface CopilotContextType {
   stopRecording: () => void;
   handleAudioRemove: () => void;
   handleGenerateImage: () => Promise<void>;
+  searchConversations: (query: string) => void;
+  sortConversations: (period: SortPeriod) => void;
+  groupConversations: (groupBy: GroupBy) => void;
 }
 
-export const CopilotContext = createContext<CopilotContextType | undefined>(undefined);
+export const CopilotContext = createContext<CopilotContextType | undefined>(
+  undefined
+);
 
-export const CopilotProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const CopilotProvider: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [activeConversationId, setActiveConversationId] = useState<string>("");
   const [messages, setMessages] = useState<ChatMessage[]>([WELCOME_MESSAGE]);
@@ -57,7 +77,8 @@ export const CopilotProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const [isLoading, setIsLoading] = useState(false);
   const [streamingContent, setStreamingContent] = useState("");
   const [selectedModel, setSelectedModel] = useState<string>("gpt-4.1-mini");
-  const [selectedInputType, setSelectedInputType] = useState<MessageType>("text");
+  const [selectedInputType, setSelectedInputType] =
+    useState<MessageType>("text");
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string>("");
   const [isRecording, setIsRecording] = useState(false);
@@ -66,6 +87,9 @@ export const CopilotProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const [imagePrompt, setImagePrompt] = useState("");
   const [isGeneratingImage, setIsGeneratingImage] = useState(false);
   const [isImageDialogOpen, setIsImageDialogOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [sortPeriod, setSortPeriod] = useState<SortPeriod>("all");
+  const [groupBy, setGroupBy] = useState<GroupBy>("none");
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
@@ -619,9 +643,118 @@ export const CopilotProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }
   };
 
+  // Search conversations
+  const searchConversations = (query: string) => {
+    setSearchQuery(query);
+  };
+
+  // Sort conversations by time period
+  const sortConversations = (period: SortPeriod) => {
+    setSortPeriod(period);
+  };
+
+  // Group conversations
+  const groupConversations = (groupingOption: GroupBy) => {
+    setGroupBy(groupingOption);
+  };
+
+  // Filter and sort conversations based on search query and sort period
+  const filteredConversations = useMemo(() => {
+    let filtered = [...conversations];
+
+    // Apply search filter if there's a query
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter(
+        (conv) =>
+          conv.title.toLowerCase().includes(query) ||
+          conv.messages.some((msg) => msg.content.toLowerCase().includes(query))
+      );
+    }
+
+    // Apply time period filter
+    if (sortPeriod !== "all") {
+      const now = new Date();
+      let cutoffDate = new Date();
+
+      switch (sortPeriod) {
+        case "day":
+          cutoffDate.setDate(now.getDate() - 1); // Last 24 hours
+          break;
+        case "week":
+          cutoffDate.setDate(now.getDate() - 7); // Last 7 days
+          break;
+        case "month":
+          cutoffDate.setMonth(now.getMonth() - 1); // Last 30 days
+          break;
+      }
+
+      filtered = filtered.filter(
+        (conv) => new Date(conv.updatedAt) >= cutoffDate
+      );
+    }
+
+    // Sort by most recent first
+    return filtered.sort(
+      (a, b) =>
+        new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+    );
+  }, [conversations, searchQuery, sortPeriod]);
+
+  // Group conversations by time periods
+  const groupedConversations = useMemo(() => {
+    if (groupBy === "none") {
+      return { "All Conversations": filteredConversations };
+    }
+
+    const groups: Record<string, Conversation[]> = {
+      Today: [],
+      Yesterday: [],
+      "This Week": [],
+      "This Month": [],
+      Older: [],
+    };
+
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+    const thisWeekStart = new Date(today);
+    thisWeekStart.setDate(today.getDate() - today.getDay()); // Start of current week (Sunday)
+    const thisMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+
+    filteredConversations.forEach((conv) => {
+      const convDate = new Date(conv.updatedAt);
+      const convDateNoTime = new Date(
+        convDate.getFullYear(),
+        convDate.getMonth(),
+        convDate.getDate()
+      );
+
+      if (convDateNoTime.getTime() === today.getTime()) {
+        groups["Today"].push(conv);
+      } else if (convDateNoTime.getTime() === yesterday.getTime()) {
+        groups["Yesterday"].push(conv);
+      } else if (convDate >= thisWeekStart && convDate < today) {
+        groups["This Week"].push(conv);
+      } else if (convDate >= thisMonthStart && convDate < thisWeekStart) {
+        groups["This Month"].push(conv);
+      } else {
+        groups["Older"].push(conv);
+      }
+    });
+
+    // Remove empty groups
+    return Object.fromEntries(
+      Object.entries(groups).filter(([_, convs]) => convs.length > 0)
+    );
+  }, [filteredConversations, groupBy]);
+
   const value = {
     // State
     conversations,
+    filteredConversations,
+    groupedConversations,
     activeConversationId,
     messages,
     input,
@@ -637,15 +770,18 @@ export const CopilotProvider: React.FC<{ children: React.ReactNode }> = ({ child
     imagePrompt,
     isGeneratingImage,
     isImageDialogOpen,
+    searchQuery,
+    sortPeriod,
+    groupBy,
     messagesEndRef,
     fileInputRef,
-    
+
     // Setters
     setInput,
     setSelectedInputType,
     setImagePrompt,
     setIsImageDialogOpen,
-    
+
     // Functions
     createNewConversation,
     switchConversation,
@@ -659,12 +795,13 @@ export const CopilotProvider: React.FC<{ children: React.ReactNode }> = ({ child
     stopRecording,
     handleAudioRemove,
     handleGenerateImage,
+    searchConversations,
+    sortConversations,
+    groupConversations,
   };
 
   return (
-    <CopilotContext.Provider value={value}>
-      {children}
-    </CopilotContext.Provider>
+    <CopilotContext.Provider value={value}>{children}</CopilotContext.Provider>
   );
 };
 
