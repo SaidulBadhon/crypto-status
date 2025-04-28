@@ -473,11 +473,13 @@ export async function analyzeTransactionImageWithOpenAI(
  *
  * @param message User's message or question
  * @param marketData Current cryptocurrency market data
+ * @param model OpenAI model to use (defaults to gpt-4.1-mini if not specified)
  * @returns AI-generated response with advice and suggestions
  */
 export async function generateCryptoAdvice(
   message: string,
-  marketData: CryptoMarketData[]
+  marketData: CryptoMarketData[],
+  model: string = "gpt-4.1-mini"
 ): Promise<string> {
   try {
     // Check if OpenAI API key is configured
@@ -504,7 +506,7 @@ export async function generateCryptoAdvice(
         Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
       },
       body: JSON.stringify({
-        model: "gpt-4.1-mini",
+        model: model,
         messages: [
           {
             role: "system",
@@ -560,11 +562,13 @@ Important guidelines:
  *
  * @param message User's message or question
  * @param marketData Current cryptocurrency market data
+ * @param model OpenAI model to use (defaults to gpt-4.1-mini if not specified)
  * @returns Stream of AI-generated response chunks
  */
 export async function generateCryptoAdviceStream(
   message: string,
-  marketData: CryptoMarketData[]
+  marketData: CryptoMarketData[],
+  model: string = "gpt-4.1-mini"
 ): Promise<ReadableStream<Uint8Array>> {
   try {
     // Check if OpenAI API key is configured
@@ -591,7 +595,7 @@ export async function generateCryptoAdviceStream(
         Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
       },
       body: JSON.stringify({
-        model: "gpt-4.1-mini",
+        model: model,
         messages: [
           {
             role: "system",

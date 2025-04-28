@@ -11,6 +11,8 @@ import {
   Menu,
   X,
   PlusCircle,
+  Check,
+  ChevronsUpDown,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,6 +23,13 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 // Define message type
 interface ChatMessage {
@@ -36,6 +45,7 @@ interface Conversation {
   messages: ChatMessage[];
   createdAt: string;
   updatedAt: string;
+  model: string;
 }
 
 // Default welcome message
@@ -46,6 +56,14 @@ const WELCOME_MESSAGE: ChatMessage = {
   timestamp: new Date(),
 };
 
+// Available models
+const AVAILABLE_MODELS = [
+  { id: "gpt-4.1-mini", name: "GPT-4.1 Mini" },
+  { id: "gpt-4.1", name: "GPT-4.1" },
+  { id: "gpt-4o", name: "GPT-4o" },
+  { id: "gpt-4o-mini", name: "GPT-4o Mini" },
+];
+
 export default function CopilotPage() {
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [activeConversationId, setActiveConversationId] = useState<string>("");
@@ -54,6 +72,7 @@ export default function CopilotPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [streamingContent, setStreamingContent] = useState("");
   const [showConversations, setShowConversations] = useState(false);
+  const [selectedModel, setSelectedModel] = useState<string>("gpt-4.1-mini");
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Load conversations from local storage on initial render
@@ -97,7 +116,7 @@ export default function CopilotPage() {
   }, []);
 
   // Create a new conversation
-  const createNewConversation = () => {
+  const createNewConversation = (model: string = "gpt-4.1-mini") => {
     const newId = generateId();
     const newConversation: Conversation = {
       id: newId,
@@ -105,6 +124,7 @@ export default function CopilotPage() {
       messages: [WELCOME_MESSAGE],
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
+      model: model,
     };
 
     setConversations((prev) => [newConversation, ...prev]);
@@ -127,7 +147,10 @@ export default function CopilotPage() {
   };
 
   // Update the current conversation with new messages
-  const updateCurrentConversation = (newMessages: ChatMessage[]) => {
+  const updateCurrentConversation = (
+    newMessages: ChatMessage[],
+    model?: string
+  ) => {
     if (!activeConversationId) return;
 
     const updatedConversations = conversations.map((conv) => {
@@ -151,6 +174,7 @@ export default function CopilotPage() {
           messages: newMessages,
           title,
           updatedAt: new Date().toISOString(),
+          model: model || conv.model || selectedModel,
         };
       }
       return conv;
@@ -172,6 +196,10 @@ export default function CopilotPage() {
           timestamp: new Date(msg.timestamp),
         }))
       );
+      // Update the selected model to match the conversation's model
+      if (conversation.model) {
+        setSelectedModel(conversation.model);
+      }
       localStorage.setItem("lastConversationId", conversationId);
       setShowConversations(false);
     }
@@ -278,14 +306,24 @@ export default function CopilotPage() {
     setIsLoading(true);
     setStreamingContent("");
 
+    // Get the current conversation to use its model
+    const currentConversation = conversations.find(
+      (c) => c.id === activeConversationId
+    );
+    const modelToUse = currentConversation?.model || selectedModel;
+
     try {
-      // Send request to API with streaming enabled
+      // Send request to API with streaming enabled and the selected model
       const response = await fetch("/api/copilot", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ message: input, stream: true }),
+        body: JSON.stringify({
+          message: input,
+          stream: true,
+          model: modelToUse,
+        }),
       });
 
       if (!response.ok) {
@@ -336,7 +374,7 @@ export default function CopilotPage() {
                 variant="ghost"
                 size="icon"
                 className="h-8 w-8"
-                onClick={createNewConversation}
+                onClick={() => createNewConversation(selectedModel)}
                 title="New conversation"
               >
                 <PlusCircle className="h-4 w-4" />
@@ -351,6 +389,34 @@ export default function CopilotPage() {
                 <X className="h-4 w-4" />
               </Button>
             </div>
+          </div>
+
+          {/* Mobile model selector */}
+          <div className="p-3 border-b border-border md:hidden">
+            <Select
+              value={
+                conversations.find((c) => c.id === activeConversationId)
+                  ?.model || selectedModel
+              }
+              onValueChange={(value: string) => {
+                setSelectedModel(value);
+                if (activeConversationId) {
+                  // Update the current conversation with the new model
+                  updateCurrentConversation(messages, value);
+                }
+              }}
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Select model" />
+              </SelectTrigger>
+              <SelectContent>
+                {AVAILABLE_MODELS.map((model) => (
+                  <SelectItem key={model.id} value={model.id}>
+                    {model.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           {/* Conversation list */}
@@ -375,8 +441,17 @@ export default function CopilotPage() {
                       <div className="font-medium truncate text-sm">
                         {conversation.title}
                       </div>
-                      <div className="text-xs text-muted-foreground mt-0.5">
-                        {new Date(conversation.updatedAt).toLocaleDateString()}
+                      <div className="flex justify-between text-xs text-muted-foreground mt-0.5">
+                        <span>
+                          {new Date(
+                            conversation.updatedAt
+                          ).toLocaleDateString()}
+                        </span>
+                        <span className="opacity-70">
+                          {AVAILABLE_MODELS.find(
+                            (m) => m.id === conversation.model
+                          )?.name || conversation.model}
+                        </span>
                       </div>
                     </div>
                     <Button
@@ -413,7 +488,34 @@ export default function CopilotPage() {
               <Bot className="h-6 w-6 text-primary" />
               <h1 className="text-xl font-bold">Crypto Copilot</h1>
             </div>
-            <div className="flex gap-2">
+            <div className="flex gap-2 items-center">
+              {/* Model selector */}
+              <div className="hidden sm:block">
+                <Select
+                  value={
+                    conversations.find((c) => c.id === activeConversationId)
+                      ?.model || selectedModel
+                  }
+                  onValueChange={(value: string) => {
+                    setSelectedModel(value);
+                    if (activeConversationId) {
+                      // Update the current conversation with the new model
+                      updateCurrentConversation(messages, value);
+                    }
+                  }}
+                >
+                  <SelectTrigger className="w-[180px] h-8">
+                    <SelectValue placeholder="Select model" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {AVAILABLE_MODELS.map((model) => (
+                      <SelectItem key={model.id} value={model.id}>
+                        {model.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
@@ -421,7 +523,7 @@ export default function CopilotPage() {
                       variant="outline"
                       size="sm"
                       className="h-8"
-                      onClick={createNewConversation}
+                      onClick={() => createNewConversation(selectedModel)}
                     >
                       <PlusCircle className="h-4 w-4 mr-1" />
                       <span className="hidden sm:inline">New</span>
@@ -498,11 +600,20 @@ export default function CopilotPage() {
                       </div>
                     )}
                     <div className="mt-2 flex items-center justify-between text-xs opacity-50">
-                      <span>
-                        {typeof message.timestamp === "string"
-                          ? new Date(message.timestamp).toLocaleTimeString()
-                          : message.timestamp.toLocaleTimeString()}
-                      </span>
+                      <div className="flex items-center gap-2">
+                        <span>
+                          {typeof message.timestamp === "string"
+                            ? new Date(message.timestamp).toLocaleTimeString()
+                            : message.timestamp.toLocaleTimeString()}
+                        </span>
+                        {message.role === "assistant" && (
+                          <span className="text-xs opacity-70">
+                            {conversations.find(
+                              (c) => c.id === activeConversationId
+                            )?.model || selectedModel}
+                          </span>
+                        )}
+                      </div>
                       {message.role === "assistant" && (
                         <TooltipProvider>
                           <Tooltip>
@@ -540,7 +651,14 @@ export default function CopilotPage() {
                   <div className="min-w-0 flex-1">
                     <MarkdownRenderer content={streamingContent} />
                     <div className="mt-2 flex items-center justify-between text-xs opacity-50">
-                      <span>{new Date().toLocaleTimeString()}</span>
+                      <div className="flex items-center gap-2">
+                        <span>{new Date().toLocaleTimeString()}</span>
+                        <span className="text-xs opacity-70">
+                          {conversations.find(
+                            (c) => c.id === activeConversationId
+                          )?.model || selectedModel}
+                        </span>
+                      </div>
                     </div>
                   </div>
                 </div>

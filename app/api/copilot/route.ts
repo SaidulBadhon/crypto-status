@@ -10,7 +10,7 @@ export async function POST(request: NextRequest) {
   try {
     // Get the request body
     const data = await request.json();
-    const { message, stream = false } = data;
+    const { message, stream = false, model = "gpt-4.1-mini" } = data;
 
     if (!message) {
       return NextResponse.json(
@@ -24,14 +24,18 @@ export async function POST(request: NextRequest) {
 
     // Check if streaming is requested
     if (stream) {
-      // Generate streaming response using OpenAI
-      const stream = await generateCryptoAdviceStream(message, marketData);
+      // Generate streaming response using OpenAI with the specified model
+      const stream = await generateCryptoAdviceStream(
+        message,
+        marketData,
+        model
+      );
 
       // Return the stream directly
       return new Response(stream);
     } else {
-      // Generate regular response using OpenAI
-      const response = await generateCryptoAdvice(message, marketData);
+      // Generate regular response using OpenAI with the specified model
+      const response = await generateCryptoAdvice(message, marketData, model);
 
       return NextResponse.json({
         success: true,
