@@ -563,12 +563,76 @@ Important guidelines:
  * @param message User's message or question
  * @param marketData Current cryptocurrency market data
  * @param model OpenAI model to use (defaults to gpt-4.1-mini if not specified)
+ * @param imageUrl Optional URL of an image to analyze (for multimodal queries)
  * @returns Stream of AI-generated response chunks
  */
+/**
+ * Generates an image using OpenAI's DALL-E model
+ *
+ * @param prompt Text prompt describing the image to generate
+ * @param size Size of the image to generate (defaults to 1024x1024)
+ * @returns URL of the generated image
+ */
+export async function generateImageWithDallE(
+  prompt: string,
+  size:
+    | "256x256"
+    | "512x512"
+    | "1024x1024"
+    | "1792x1024"
+    | "1024x1792" = "1024x1024"
+): Promise<string> {
+  try {
+    // Check if OpenAI API key is configured
+    if (!process.env.OPENAI_API_KEY) {
+      throw new Error("OpenAI API key is not configured");
+    }
+
+    // Prepare the API request to OpenAI
+    const response = await fetch(
+      "https://api.openai.com/v1/images/generations",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+        },
+        body: JSON.stringify({
+          model: "dall-e-3",
+          prompt: `${prompt} (related to cryptocurrency or finance)`,
+          n: 1,
+          size: size,
+          quality: "standard",
+        }),
+      }
+    );
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(
+        `OpenAI API error: ${errorData.error?.message || response.statusText}`
+      );
+    }
+
+    const data = await response.json();
+    const imageUrl = data.data[0]?.url;
+
+    if (!imageUrl) {
+      throw new Error("No image URL returned from OpenAI");
+    }
+
+    return imageUrl;
+  } catch (error) {
+    console.error("Error generating image with DALL-E:", error);
+    throw error;
+  }
+}
+
 export async function generateCryptoAdviceStream(
   message: string,
   marketData: CryptoMarketData[],
-  model: string = "gpt-4.1-mini"
+  model: string = "gpt-4.1-mini",
+  imageUrl?: string
 ): Promise<ReadableStream<Uint8Array>> {
   try {
     // Check if OpenAI API key is configured
@@ -618,7 +682,20 @@ Important guidelines:
           },
           {
             role: "user",
-            content: message,
+            content: imageUrl
+              ? [
+                  {
+                    type: "text",
+                    text: message,
+                  },
+                  {
+                    type: "image_url",
+                    image_url: {
+                      url: imageUrl,
+                    },
+                  },
+                ]
+              : message,
           },
         ],
         temperature: 0.7,

@@ -409,3 +409,37 @@ export const analyzeTransactionImageWithOpenAI = async (
     throw error;
   }
 };
+
+/**
+ * Generates an image using OpenAI's DALL-E model
+ * @param {string} prompt - Text prompt describing the image to generate
+ * @param {string} size - Size of the image to generate (defaults to 1024x1024)
+ * @returns {Promise<{success: boolean, imageUrl: string}>} Generation result
+ */
+export const generateImageWithDallE = async (
+  prompt: string,
+  size: string = "1024x1024"
+): Promise<{ success: boolean; imageUrl: string }> => {
+  try {
+    const res = await fetch("/api/copilot/generate-image", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ prompt, size }),
+    });
+
+    if (!res.ok) {
+      const errorData = await res.json();
+      throw new Error(
+        errorData.message ||
+          `Failed to generate image: ${res.status} ${res.statusText}`
+      );
+    }
+
+    return await res.json();
+  } catch (error) {
+    console.error("Error generating image with DALL-E:", error);
+    throw error;
+  }
+};

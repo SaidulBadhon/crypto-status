@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { cn } from "@/lib/utils";
+import { generateImageWithDallE } from "@/lib/api";
 import {
   Bot,
   Send,
@@ -11,10 +12,26 @@ import {
   Copy,
   X,
   PlusCircle,
+  Image,
+  Mic,
+  FileAudio,
+  MessageSquare,
+  Paperclip,
+  ImagePlus,
+  Sparkles,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import MarkdownRenderer from "@/components/copilot/MarkdownRenderer";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import {
   Tooltip,
   TooltipContent,
@@ -45,10 +62,15 @@ import {
   SidebarRail,
 } from "@/components/ui/sidebar";
 
-// Define message type
+// Define message types
+type MessageType = "text" | "image" | "audio" | "generated-image";
+
 interface ChatMessage {
   role: "user" | "assistant";
+  type: MessageType;
   content: string;
+  imageUrl?: string; // URL for image messages
+  audioUrl?: string; // URL for audio messages
   timestamp: Date | string; // Allow string for serialization
 }
 
@@ -65,6 +87,7 @@ interface Conversation {
 // Default welcome message
 const WELCOME_MESSAGE: ChatMessage = {
   role: "assistant",
+  type: "text",
   content:
     "Hello! I'm your Crypto Copilot. I can provide insights and suggestions about cryptocurrency markets. What would you like to know today?",
   timestamp: new Date(),
@@ -86,7 +109,19 @@ export default function CopilotPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [streamingContent, setStreamingContent] = useState("");
   const [selectedModel, setSelectedModel] = useState<string>("gpt-4.1-mini");
+  const [selectedInputType, setSelectedInputType] =
+    useState<MessageType>("text");
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string>("");
+  const [isRecording, setIsRecording] = useState(false);
+  const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
+  const [audioUrl, setAudioUrl] = useState<string>("");
+  const [imagePrompt, setImagePrompt] = useState("");
+  const [isGeneratingImage, setIsGeneratingImage] = useState(false);
+  const [isImageDialogOpen, setIsImageDialogOpen] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
 
   // Load conversations from local storage on initial render
   useEffect(() => {
@@ -256,6 +291,50 @@ export default function CopilotPage() {
     let accumulatedContent = "";
 
     try {
+      // First, check if this is a special response (like an image generation)
+      const { done: firstDone, value: firstValue } = await reader.read();
+      if (firstDone) return;
+
+      const firstChunk = decoder.decode(firstValue, { stream: true });
+
+      // Try to parse as JSON to check if it's a special response
+      try {
+        const specialResponse = JSON.parse(firstChunk);
+        if (specialResponse.type === "generated-image") {
+          // This is an image generation response
+          const assistantMessage: ChatMessage = {
+            role: "assistant",
+            type: "generated-image",
+            content: specialResponse.content,
+            imageUrl: specialResponse.imageUrl,
+            timestamp: new Date(),
+          };
+          setMessages((prev) => [...prev, assistantMessage]);
+          setStreamingContent("");
+          setIsLoading(false);
+          return;
+        }
+      } catch (e) {
+        // Not a special response, continue with normal streaming
+        // Process the first chunk
+        const lines = firstChunk.split("\n");
+        for (const line of lines) {
+          if (line.startsWith("data: ") && line !== "data: [DONE]") {
+            try {
+              const data = JSON.parse(line.substring(6));
+              const content = data.choices[0]?.delta?.content || "";
+              if (content) {
+                accumulatedContent += content;
+                setStreamingContent(accumulatedContent);
+              }
+            } catch (e) {
+              // Skip invalid JSON
+            }
+          }
+        }
+      }
+
+      // Continue with normal streaming for text responses
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
@@ -284,6 +363,7 @@ export default function CopilotPage() {
       // Add the complete message
       const assistantMessage: ChatMessage = {
         role: "assistant",
+        type: "text",
         content: accumulatedContent,
         timestamp: new Date(),
       };
@@ -293,6 +373,7 @@ export default function CopilotPage() {
       console.error("Error processing stream:", error);
       const errorMessage: ChatMessage = {
         role: "assistant",
+        type: "text",
         content:
           "Sorry, I encountered an error while processing your request. Please try again later.",
         timestamp: new Date(),
@@ -305,38 +386,117 @@ export default function CopilotPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!input.trim()) return;
 
-    // Add user message
-    const userMessage: ChatMessage = {
-      role: "user",
-      content: input,
-      timestamp: new Date(),
+    // Check if we have content to send based on the selected input type
+    if (selectedInputType === "text" && !input.trim()) return;
+    if (selectedInputType === "image" && !selectedImage) return;
+    if (selectedInputType === "audio" && !audioBlob) return;
+
+    let userMessage: ChatMessage;
+    let requestBody: any = {
+      stream: true,
+      model:
+        conversations.find((c) => c.id === activeConversationId)?.model ||
+        selectedModel,
     };
+
+    // Create appropriate user message based on input type
+    switch (selectedInputType) {
+      case "text":
+        userMessage = {
+          role: "user",
+          type: "text",
+          content: input,
+          timestamp: new Date(),
+        };
+        requestBody.message = input;
+        break;
+
+      case "image":
+        userMessage = {
+          role: "user",
+          type: "image",
+          content: "Image message",
+          imageUrl: imagePreview,
+          timestamp: new Date(),
+        };
+
+        // Create form data with the image
+        const imageFormData = new FormData();
+        imageFormData.append("image", selectedImage!);
+        imageFormData.append("model", requestBody.model);
+
+        // We'll use a different endpoint for image messages
+        requestBody.formData = imageFormData;
+        break;
+
+      case "audio":
+        userMessage = {
+          role: "user",
+          type: "audio",
+          content: "Audio message",
+          audioUrl: audioUrl,
+          timestamp: new Date(),
+        };
+
+        // Create form data with the audio
+        const audioFormData = new FormData();
+        audioFormData.append("audio", audioBlob!);
+        audioFormData.append("model", requestBody.model);
+
+        // We'll use a different endpoint for audio messages
+        requestBody.formData = audioFormData;
+        break;
+
+      default:
+        return;
+    }
+
+    // Add user message to the conversation
     setMessages((prev) => [...prev, userMessage]);
+
+    // Reset input states
     setInput("");
+    if (imagePreview) {
+      URL.revokeObjectURL(imagePreview);
+      setSelectedImage(null);
+      setImagePreview("");
+    }
+    if (audioUrl) {
+      URL.revokeObjectURL(audioUrl);
+      setAudioBlob(null);
+      setAudioUrl("");
+    }
+
+    setSelectedInputType("text");
     setIsLoading(true);
     setStreamingContent("");
 
-    // Get the current conversation to use its model
-    const currentConversation = conversations.find(
-      (c) => c.id === activeConversationId
-    );
-    const modelToUse = currentConversation?.model || selectedModel;
-
     try {
-      // Send request to API with streaming enabled and the selected model
-      const response = await fetch("/api/copilot", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          message: input,
-          stream: true,
-          model: modelToUse,
-        }),
-      });
+      let response;
+
+      // Send request to appropriate API endpoint based on input type
+      if (selectedInputType === "text") {
+        response = await fetch("/api/copilot", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(requestBody),
+        });
+      } else if (selectedInputType === "image") {
+        response = await fetch("/api/copilot/image", {
+          method: "POST",
+          body: requestBody.formData,
+        });
+      } else if (selectedInputType === "audio") {
+        response = await fetch("/api/copilot/audio", {
+          method: "POST",
+          body: requestBody.formData,
+        });
+      } else {
+        throw new Error("Invalid input type");
+      }
 
       if (!response.ok) {
         throw new Error("Failed to get response");
@@ -354,6 +514,7 @@ export default function CopilotPage() {
       // Add error message
       const errorMessage: ChatMessage = {
         role: "assistant",
+        type: "text",
         content:
           "Sorry, I encountered an error while processing your request. Please try again later.",
         timestamp: new Date(),
@@ -368,8 +529,197 @@ export default function CopilotPage() {
     navigator.clipboard.writeText(content);
   };
 
+  // Handle image selection
+  const handleImageSelect = () => {
+    if (fileInputRef.current) {
+      fileInputRef.current.click();
+    }
+  };
+
+  // Handle image file change
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      const file = e.target.files[0];
+      setSelectedImage(file);
+
+      // Create a preview URL for the image
+      const url = URL.createObjectURL(file);
+      setImagePreview(url);
+
+      // Set input type to image
+      setSelectedInputType("image");
+    }
+  };
+
+  // Handle image removal
+  const handleImageRemove = () => {
+    if (imagePreview) {
+      URL.revokeObjectURL(imagePreview);
+    }
+    setSelectedImage(null);
+    setImagePreview("");
+    setSelectedInputType("text");
+  };
+
+  // Start audio recording
+  const startRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mediaRecorder = new MediaRecorder(stream);
+      mediaRecorderRef.current = mediaRecorder;
+
+      const audioChunks: BlobPart[] = [];
+
+      mediaRecorder.addEventListener("dataavailable", (event) => {
+        audioChunks.push(event.data);
+      });
+
+      mediaRecorder.addEventListener("stop", () => {
+        const audioBlob = new Blob(audioChunks, { type: "audio/wav" });
+        setAudioBlob(audioBlob);
+
+        const audioUrl = URL.createObjectURL(audioBlob);
+        setAudioUrl(audioUrl);
+
+        // Set input type to audio
+        setSelectedInputType("audio");
+      });
+
+      mediaRecorder.start();
+      setIsRecording(true);
+    } catch (error) {
+      console.error("Error starting recording:", error);
+    }
+  };
+
+  // Stop audio recording
+  const stopRecording = () => {
+    if (mediaRecorderRef.current && isRecording) {
+      mediaRecorderRef.current.stop();
+      setIsRecording(false);
+
+      // Stop all audio tracks
+      if (mediaRecorderRef.current.stream) {
+        mediaRecorderRef.current.stream
+          .getTracks()
+          .forEach((track) => track.stop());
+      }
+    }
+  };
+
+  // Handle audio removal
+  const handleAudioRemove = () => {
+    if (audioUrl) {
+      URL.revokeObjectURL(audioUrl);
+    }
+    setAudioBlob(null);
+    setAudioUrl("");
+    setSelectedInputType("text");
+  };
+
+  // Handle image generation
+  const handleGenerateImage = async () => {
+    if (!imagePrompt.trim()) return;
+
+    setIsGeneratingImage(true);
+
+    try {
+      // Add user message with the prompt
+      const userMessage: ChatMessage = {
+        role: "user",
+        type: "text",
+        content: `Generate an image: ${imagePrompt}`,
+        timestamp: new Date(),
+      };
+      setMessages((prev) => [...prev, userMessage]);
+
+      // Call the API to generate the image
+      const result = await generateImageWithDallE(imagePrompt);
+
+      if (result.success && result.imageUrl) {
+        // Add assistant message with the generated image
+        const assistantMessage: ChatMessage = {
+          role: "assistant",
+          type: "generated-image",
+          content: "Here's the image I generated based on your prompt:",
+          imageUrl: result.imageUrl,
+          timestamp: new Date(),
+        };
+        setMessages((prev) => [...prev, assistantMessage]);
+
+        // Update the conversation
+        updateCurrentConversation([...messages, userMessage, assistantMessage]);
+
+        // Close the dialog
+        setIsImageDialogOpen(false);
+        setImagePrompt("");
+      } else {
+        throw new Error("Failed to generate image");
+      }
+    } catch (error) {
+      console.error("Error generating image:", error);
+      // Add error message
+      const errorMessage: ChatMessage = {
+        role: "assistant",
+        type: "text",
+        content:
+          "Sorry, I encountered an error while generating the image. Please try again with a different prompt.",
+        timestamp: new Date(),
+      };
+      setMessages((prev) => [...prev, errorMessage]);
+    } finally {
+      setIsGeneratingImage(false);
+    }
+  };
+
   return (
     <SidebarProvider>
+      <Dialog open={isImageDialogOpen} onOpenChange={setIsImageDialogOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Generate Image</DialogTitle>
+            <DialogDescription>
+              Enter a prompt to generate an image using DALL-E
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <Input
+              placeholder="A futuristic cryptocurrency exchange in neon style..."
+              value={imagePrompt}
+              onChange={(e) => setImagePrompt(e.target.value)}
+              disabled={isGeneratingImage}
+            />
+          </div>
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setIsImageDialogOpen(false)}
+              disabled={isGeneratingImage}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              onClick={handleGenerateImage}
+              disabled={isGeneratingImage || !imagePrompt.trim()}
+            >
+              {isGeneratingImage ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  Generating...
+                </>
+              ) : (
+                <>
+                  <Sparkles className="h-4 w-4 mr-2" />
+                  Generate
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       <div className="flex h-screen w-full bg-background">
         {/* Sidebar for conversation history */}
         <Sidebar collapsible="icon">
@@ -643,13 +993,65 @@ export default function CopilotPage() {
                       )}
                     </div>
                     <div className="min-w-0 flex-1">
-                      {message.role === "assistant" ? (
+                      {/* Display content based on message type */}
+                      {message.role === "assistant" &&
+                      message.type === "text" ? (
                         <MarkdownRenderer content={message.content} />
+                      ) : message.type === "text" ? (
+                        <div className="whitespace-pre-wrap">
+                          {message.content}
+                        </div>
+                      ) : message.type === "image" ? (
+                        <div className="space-y-2">
+                          <div className="whitespace-pre-wrap">
+                            {message.content}
+                          </div>
+                          {message.imageUrl && (
+                            <div className="rounded-md overflow-hidden border border-border">
+                              <img
+                                src={message.imageUrl}
+                                alt="User uploaded image"
+                                className="max-h-60 w-auto"
+                              />
+                            </div>
+                          )}
+                        </div>
+                      ) : message.type === "audio" ? (
+                        <div className="space-y-2">
+                          <div className="whitespace-pre-wrap">
+                            {message.content}
+                          </div>
+                          {message.audioUrl && (
+                            <div className="rounded-md overflow-hidden border border-border p-2">
+                              <audio
+                                src={message.audioUrl}
+                                controls
+                                className="w-full"
+                              />
+                            </div>
+                          )}
+                        </div>
+                      ) : message.type === "generated-image" ? (
+                        <div className="space-y-2">
+                          <div className="whitespace-pre-wrap">
+                            {message.content}
+                          </div>
+                          {message.imageUrl && (
+                            <div className="rounded-md overflow-hidden border border-border">
+                              <img
+                                src={message.imageUrl}
+                                alt="AI generated image"
+                                className="max-h-80 w-auto"
+                              />
+                            </div>
+                          )}
+                        </div>
                       ) : (
                         <div className="whitespace-pre-wrap">
                           {message.content}
                         </div>
                       )}
+
                       <div className="mt-2 flex items-center justify-between text-xs opacity-50">
                         <div className="flex items-center gap-2">
                           <span>
@@ -662,6 +1064,11 @@ export default function CopilotPage() {
                               {conversations.find(
                                 (c) => c.id === activeConversationId
                               )?.model || selectedModel}
+                            </span>
+                          )}
+                          {message.type !== "text" && (
+                            <span className="text-xs opacity-70 capitalize">
+                              {message.type}
                             </span>
                           )}
                         </div>
@@ -739,26 +1146,198 @@ export default function CopilotPage() {
 
             {/* Input area - fixed at the bottom */}
             <div className="border-t border-border py-3 px-4 flex-shrink-0 bg-background">
-              <form onSubmit={handleSubmit} className="flex gap-2">
-                <Input
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  placeholder="Ask about crypto markets..."
-                  disabled={isLoading}
-                  className="flex-1 py-5"
+              <form onSubmit={handleSubmit} className="space-y-2">
+                {/* Hidden file input for image uploads */}
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  onChange={handleImageChange}
+                  accept="image/*"
+                  className="hidden"
                 />
-                <Button
-                  type="submit"
-                  disabled={isLoading || !input.trim()}
-                  className="px-4"
-                >
-                  {isLoading ? (
-                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                  ) : (
-                    <Send className="h-4 w-4 mr-2" />
+
+                {/* Display selected image preview */}
+                {selectedInputType === "image" && imagePreview && (
+                  <div className="relative w-full rounded-md overflow-hidden border border-border">
+                    <img
+                      src={imagePreview}
+                      alt="Selected image"
+                      className="max-h-60 w-auto mx-auto"
+                    />
+                    <Button
+                      type="button"
+                      variant="destructive"
+                      size="icon"
+                      className="absolute top-2 right-2 h-6 w-6 rounded-full"
+                      onClick={handleImageRemove}
+                    >
+                      <X className="h-3 w-3" />
+                    </Button>
+                  </div>
+                )}
+
+                {/* Display audio player */}
+                {selectedInputType === "audio" && audioUrl && (
+                  <div className="relative w-full rounded-md overflow-hidden border border-border p-2">
+                    <audio src={audioUrl} controls className="w-full" />
+                    <Button
+                      type="button"
+                      variant="destructive"
+                      size="icon"
+                      className="absolute top-2 right-2 h-6 w-6 rounded-full"
+                      onClick={handleAudioRemove}
+                    >
+                      <X className="h-3 w-3" />
+                    </Button>
+                  </div>
+                )}
+
+                {/* Recording indicator */}
+                {isRecording && (
+                  <div className="flex items-center gap-2 text-red-500 animate-pulse">
+                    <Mic className="h-4 w-4" />
+                    <span>Recording... Click stop when finished</span>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={stopRecording}
+                    >
+                      Stop
+                    </Button>
+                  </div>
+                )}
+
+                <div className="flex gap-2">
+                  {/* Text input */}
+                  {selectedInputType === "text" && (
+                    <Input
+                      value={input}
+                      onChange={(e) => setInput(e.target.value)}
+                      placeholder="Ask about crypto markets..."
+                      disabled={isLoading}
+                      className="flex-1 py-5"
+                    />
                   )}
-                  <span>Send</span>
-                </Button>
+
+                  {/* Input type selectors */}
+                  <div className="flex gap-1">
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            type="button"
+                            variant={
+                              selectedInputType === "text"
+                                ? "default"
+                                : "outline"
+                            }
+                            size="icon"
+                            className="h-10 w-10"
+                            onClick={() => setSelectedInputType("text")}
+                            disabled={isLoading}
+                          >
+                            <MessageSquare className="h-4 w-4" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Text message</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            type="button"
+                            variant={
+                              selectedInputType === "image"
+                                ? "default"
+                                : "outline"
+                            }
+                            size="icon"
+                            className="h-10 w-10"
+                            onClick={handleImageSelect}
+                            disabled={isLoading}
+                          >
+                            <Image className="h-4 w-4" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Image message</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            type="button"
+                            variant={
+                              selectedInputType === "audio"
+                                ? "default"
+                                : "outline"
+                            }
+                            size="icon"
+                            className="h-10 w-10"
+                            onClick={
+                              isRecording ? stopRecording : startRecording
+                            }
+                            disabled={isLoading}
+                          >
+                            <Mic className="h-4 w-4" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>
+                            {isRecording ? "Stop recording" : "Record audio"}
+                          </p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="icon"
+                            className="h-10 w-10"
+                            onClick={() => setIsImageDialogOpen(true)}
+                            disabled={isLoading || isGeneratingImage}
+                          >
+                            <ImagePlus className="h-4 w-4" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Generate image with AI</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </div>
+
+                  {/* Send button */}
+                  <Button
+                    type="submit"
+                    disabled={
+                      isLoading ||
+                      (selectedInputType === "text" && !input.trim()) ||
+                      (selectedInputType === "image" && !selectedImage) ||
+                      (selectedInputType === "audio" && !audioBlob)
+                    }
+                    className="px-4"
+                  >
+                    {isLoading ? (
+                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                    ) : (
+                      <Send className="h-4 w-4 mr-2" />
+                    )}
+                    <span>Send</span>
+                  </Button>
+                </div>
               </form>
             </div>
           </div>
