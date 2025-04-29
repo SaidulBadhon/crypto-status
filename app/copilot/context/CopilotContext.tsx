@@ -8,6 +8,7 @@ import React, {
   useEffect,
   useMemo,
 } from "react";
+import { useRouter } from "next/navigation";
 import { generateImageWithDallE } from "@/lib/api";
 import { ChatMessage, Conversation, MessageType } from "../types";
 import { WELCOME_MESSAGE, AVAILABLE_MODELS } from "../constants";
@@ -67,9 +68,16 @@ export const CopilotContext = createContext<CopilotContextType | undefined>(
   undefined
 );
 
-export const CopilotProvider: React.FC<{ children: React.ReactNode }> = ({
+interface CopilotProviderProps {
+  children: React.ReactNode;
+  initialConversationId?: string;
+}
+
+export const CopilotProvider: React.FC<CopilotProviderProps> = ({
   children,
+  initialConversationId,
 }) => {
+  const router = useRouter();
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [activeConversationId, setActiveConversationId] = useState<string>("");
   const [messages, setMessages] = useState<ChatMessage[]>([WELCOME_MESSAGE]);
@@ -94,8 +102,20 @@ export const CopilotProvider: React.FC<{ children: React.ReactNode }> = ({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
 
-  // Load conversations from local storage on initial render
+  // Load conversations and settings from local storage on initial render
   useEffect(() => {
+    // Load sort and group settings
+    const savedSortPeriod = localStorage.getItem("sortPeriod");
+    if (savedSortPeriod) {
+      setSortPeriod(savedSortPeriod as SortPeriod);
+    }
+
+    const savedGroupBy = localStorage.getItem("groupBy");
+    if (savedGroupBy) {
+      setGroupBy(savedGroupBy as GroupBy);
+    }
+
+    // Load conversations
     const savedConversations = localStorage.getItem("copilotConversations");
     if (savedConversations) {
       try {
@@ -104,7 +124,24 @@ export const CopilotProvider: React.FC<{ children: React.ReactNode }> = ({
         ) as Conversation[];
         setConversations(parsedConversations);
 
-        // Load the most recent conversation if available
+        // If initialConversationId is provided, try to load that conversation
+        if (initialConversationId) {
+          const initialConversation = parsedConversations.find(
+            (c) => c.id === initialConversationId
+          );
+          if (initialConversation) {
+            setActiveConversationId(initialConversation.id);
+            setMessages(
+              initialConversation.messages.map((msg) => ({
+                ...msg,
+                timestamp: new Date(msg.timestamp),
+              }))
+            );
+            return;
+          }
+        }
+
+        // If no initialConversationId or it wasn't found, try the last conversation
         const lastConversationId = localStorage.getItem("lastConversationId");
         if (lastConversationId) {
           const lastConversation = parsedConversations.find(
@@ -122,7 +159,7 @@ export const CopilotProvider: React.FC<{ children: React.ReactNode }> = ({
           }
         }
 
-        // If no last conversation or it wasn't found, create a new one
+        // If no valid conversation was found, create a new one
         createNewConversation();
       } catch (error) {
         console.error("Error loading conversations:", error);
@@ -132,7 +169,7 @@ export const CopilotProvider: React.FC<{ children: React.ReactNode }> = ({
       // No saved conversations, create a new one
       createNewConversation();
     }
-  }, []);
+  }, [initialConversationId]);
 
   // Scroll to bottom of messages when new messages are added
   useEffect(() => {
@@ -175,6 +212,13 @@ export const CopilotProvider: React.FC<{ children: React.ReactNode }> = ({
     // Save to local storage
     localStorage.setItem("lastConversationId", newId);
     saveConversationsToLocalStorage([newConversation, ...conversations]);
+
+    // Save current sort and group settings to localStorage
+    localStorage.setItem("sortPeriod", sortPeriod);
+    localStorage.setItem("groupBy", groupBy);
+
+    // Navigate to the new conversation URL
+    router.push(`/copilot/${newId}`);
   };
 
   // Update the current conversation with new messages
@@ -232,6 +276,13 @@ export const CopilotProvider: React.FC<{ children: React.ReactNode }> = ({
         setSelectedModel(conversation.model);
       }
       localStorage.setItem("lastConversationId", conversationId);
+
+      // Save current sort and group settings to localStorage
+      localStorage.setItem("sortPeriod", sortPeriod);
+      localStorage.setItem("groupBy", groupBy);
+
+      // Navigate to the conversation URL
+      router.push(`/copilot/${conversationId}`);
     }
   };
 
@@ -247,8 +298,10 @@ export const CopilotProvider: React.FC<{ children: React.ReactNode }> = ({
     // If the active conversation was deleted, switch to another one or create a new one
     if (conversationId === activeConversationId) {
       if (updatedConversations.length > 0) {
+        // Navigate to the first available conversation
         switchConversation(updatedConversations[0].id);
       } else {
+        // Create a new conversation if there are no more conversations
         createNewConversation();
       }
     }
@@ -651,11 +704,13 @@ export const CopilotProvider: React.FC<{ children: React.ReactNode }> = ({
   // Sort conversations by time period
   const sortConversations = (period: SortPeriod) => {
     setSortPeriod(period);
+    localStorage.setItem("sortPeriod", period);
   };
 
   // Group conversations
   const groupConversations = (groupingOption: GroupBy) => {
     setGroupBy(groupingOption);
+    localStorage.setItem("groupBy", groupingOption);
   };
 
   // Filter and sort conversations based on search query and sort period

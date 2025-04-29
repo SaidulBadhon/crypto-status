@@ -1,9 +1,10 @@
 "use client";
 
+import { useCallback } from "react";
 import { useCopilot } from "../../context/CopilotContext";
 import { ModelSelector } from "./ModelSelector";
 import { ConversationList } from "./ConversationList";
-import { ConversationSearch, SortPeriod } from "./ConversationSearch";
+import { ConversationSearch, SortPeriod, GroupBy } from "./ConversationSearch";
 import { Button } from "@/components/ui/button";
 import { Bot, PlusCircle } from "lucide-react";
 import {
@@ -18,7 +19,7 @@ import {
   SidebarFooter,
 } from "@/components/ui/sidebar";
 
-export const ConversationSidebar = () => {
+const ConversationSidebarComponent = () => {
   const {
     selectedModel,
     createNewConversation,
@@ -26,6 +27,32 @@ export const ConversationSidebar = () => {
     sortConversations,
     groupConversations,
   } = useCopilot();
+
+  // Memoize handlers
+  const handleCreateNewConversation = useCallback(() => {
+    createNewConversation(selectedModel);
+  }, [createNewConversation, selectedModel]);
+
+  const handleSearch = useCallback(
+    (query: string) => {
+      searchConversations(query);
+    },
+    [searchConversations]
+  );
+
+  const handleSortChange = useCallback(
+    (period: SortPeriod) => {
+      sortConversations(period);
+    },
+    [sortConversations]
+  );
+
+  const handleGroupChange = useCallback(
+    (groupBy: GroupBy) => {
+      groupConversations(groupBy);
+    },
+    [groupConversations]
+  );
 
   return (
     <Sidebar collapsible="icon">
@@ -39,7 +66,7 @@ export const ConversationSidebar = () => {
             variant="ghost"
             size="icon"
             className="h-8 w-8"
-            onClick={() => createNewConversation(selectedModel)}
+            onClick={handleCreateNewConversation}
             title="New conversation"
           >
             <PlusCircle className="h-4 w-4" />
@@ -77,9 +104,9 @@ export const ConversationSidebar = () => {
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <ConversationSearch
-              onSearch={searchConversations}
-              onSortChange={sortConversations}
-              onGroupChange={groupConversations}
+              onSearch={handleSearch}
+              onSortChange={handleSortChange}
+              onGroupChange={handleGroupChange}
             />
             <ConversationList />
           </SidebarGroupContent>
@@ -97,3 +124,6 @@ export const ConversationSidebar = () => {
     </Sidebar>
   );
 };
+
+// Export the component (memo was causing issues)
+export const ConversationSidebar = ConversationSidebarComponent;

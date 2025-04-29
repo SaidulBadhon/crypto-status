@@ -12,16 +12,17 @@ interface ConversationItemProps {
   conversation: Conversation;
 }
 
-export const ConversationItem = ({ conversation }: ConversationItemProps) => {
-  const { activeConversationId, switchConversation, deleteConversation } = useCopilot();
+// Memoize the component to prevent unnecessary re-renders
+const ConversationItemComponent = ({ conversation }: ConversationItemProps) => {
+  const { activeConversationId, switchConversation, deleteConversation } =
+    useCopilot();
 
   return (
     <SidebarMenuItem
       key={conversation.id}
       className={cn(
         "flex justify-center rounded-md !py-4 items-center hover:bg-muted-foreground/5",
-        conversation.id === activeConversationId &&
-          "!bg-muted-foreground/15"
+        conversation.id === activeConversationId && "!bg-muted-foreground/15"
       )}
     >
       <SidebarMenuButton
@@ -34,15 +35,10 @@ export const ConversationItem = ({ conversation }: ConversationItemProps) => {
             {conversation.title}
           </div>
           <div className="flex justify-between text-xs text-muted-foreground mt-0.5">
-            <span>
-              {new Date(
-                conversation.updatedAt
-              ).toLocaleDateString()}
-            </span>
+            <span>{new Date(conversation.updatedAt).toLocaleDateString()}</span>
             <span className="opacity-70">
-              {AVAILABLE_MODELS.find(
-                (m) => m.id === conversation.model
-              )?.name || conversation.model}
+              {AVAILABLE_MODELS.find((m) => m.id === conversation.model)
+                ?.name || conversation.model}
             </span>
           </div>
         </div>
@@ -51,9 +47,7 @@ export const ConversationItem = ({ conversation }: ConversationItemProps) => {
         variant="ghost"
         size="icon"
         className="h-7 w-7 opacity-50 hover:opacity-100 hover:bg-destructive/10 flex-shrink-0 ml-2"
-        onClick={(e) =>
-          deleteConversation(conversation.id, e)
-        }
+        onClick={(e) => deleteConversation(conversation.id, e)}
         title="Delete conversation"
       >
         <X className="h-3.5 w-3.5" />
@@ -61,3 +55,6 @@ export const ConversationItem = ({ conversation }: ConversationItemProps) => {
     </SidebarMenuItem>
   );
 };
+
+// Export the component (memo was causing issues)
+export const ConversationItem = ConversationItemComponent;

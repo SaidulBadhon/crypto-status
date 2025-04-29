@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { Search, Calendar } from "lucide-react";
+import { useState, useCallback, useEffect } from "react";
+import { Search, Calendar, Layers } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -10,6 +10,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useDebounce } from "@/lib/hooks/useDebounce";
+import { useCopilot } from "../../context/CopilotContext";
 
 export type SortPeriod = "all" | "day" | "week" | "month";
 export type GroupBy = "none" | "time";
@@ -20,18 +22,32 @@ interface ConversationSearchProps {
   onGroupChange: (groupBy: GroupBy) => void;
 }
 
-export const ConversationSearch = ({
+const ConversationSearchComponent = ({
   onSearch,
   onSortChange,
   onGroupChange,
 }: ConversationSearchProps) => {
-  const [searchQuery, setSearchQuery] = useState("");
+  // Get current values from context
+  const { searchQuery: contextSearchQuery, sortPeriod, groupBy } = useCopilot();
 
-  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const query = e.target.value;
-    setSearchQuery(query);
-    onSearch(query);
-  };
+  // Local state for the search input
+  const [localSearchQuery, setLocalSearchQuery] = useState(contextSearchQuery);
+  const debouncedSearchQuery = useDebounce(localSearchQuery, 300);
+
+  // Update local search query when context search query changes
+  useEffect(() => {
+    setLocalSearchQuery(contextSearchQuery);
+  }, [contextSearchQuery]);
+
+  // Use useCallback to memoize the event handler
+  const handleSearch = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    setLocalSearchQuery(e.target.value);
+  }, []);
+
+  // Apply the search when the debounced value changes
+  useEffect(() => {
+    onSearch(debouncedSearchQuery);
+  }, [debouncedSearchQuery, onSearch]);
 
   return (
     <div className="space-y-2 px-2 py-2 group-data-[collapsible=icon]:px-0">
@@ -39,14 +55,14 @@ export const ConversationSearch = ({
         <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
         <Input
           placeholder="Search conversations..."
-          value={searchQuery}
+          value={localSearchQuery}
           onChange={handleSearch}
           className="pl-8 h-9 group-data-[collapsible=icon]:hidden"
         />
       </div>
       <div className="grid grid-cols-2 gap-2 group-data-[collapsible=icon]:hidden">
         <Select
-          defaultValue="all"
+          value={sortPeriod}
           onValueChange={(value) => onSortChange(value as SortPeriod)}
         >
           <SelectTrigger className="w-full h-9">
@@ -62,7 +78,7 @@ export const ConversationSearch = ({
         </Select>
 
         <Select
-          defaultValue="none"
+          value={groupBy}
           onValueChange={(value) => onGroupChange(value as GroupBy)}
         >
           <SelectTrigger className="w-full h-9">
@@ -77,3 +93,6 @@ export const ConversationSearch = ({
     </div>
   );
 };
+
+// Export the component (memo was causing issues)
+export const ConversationSearch = ConversationSearchComponent;

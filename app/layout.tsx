@@ -46,9 +46,7 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <ProtectedLayout>
-          {/* <MainLayout> */}
-          {children}
-          {/* </MainLayout> */}
+          <MainLayout>{children}</MainLayout>
         </ProtectedLayout>
       </body>
     </html>
